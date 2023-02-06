@@ -10,6 +10,7 @@ variable "NGWAF_EMAIL" {
 variable "NGWAF_TOKEN" {
     type        = string
     description = "This is a secret token for the NGWAF API."
+    sensitive   = true
 }
 variable "NGWAF_SITE" {
     type        = string
