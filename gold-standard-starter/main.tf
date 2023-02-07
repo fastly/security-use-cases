@@ -10,7 +10,7 @@ provider "sigsci" {
 }
 #### Supply NGWAF API authentication - End
 
-#### Any Attack Signal - Start
+#### Block Any Attack Signal from Attack Sources - Start
 resource "sigsci_corp_list" "any-attack-signal-list" {
     name = "any-attack-signal"
     type = "signal"
@@ -23,9 +23,7 @@ resource "sigsci_corp_list" "any-attack-signal-list" {
       "XSS",
     ]
 }
-#### Any Attack Signal - End
 
-#### Any Attack Source - Start
 resource "sigsci_corp_list" "attack-sources-signals-list" {
     name = "attack-sources-signals"
     type = "signal"
@@ -35,9 +33,7 @@ resource "sigsci_corp_list" "attack-sources-signals-list" {
       "TORNODE",
     ]
 }
-#### Any Attack Source - End
 
-#### Malicious Attacker Rule - Start
 resource "sigsci_corp_signal_tag" "malicious-attacker-signal" {
   short_name  = "corp.malicious-attacker"
   description = "Identification of attacks from malicious IPs"
@@ -80,7 +76,7 @@ resource "sigsci_corp_rule" "malicious-attacker-rule" {
     signal = "corp.malicious-attacker" 
   }
 }
-#### Malicious Attacker Rule - End
+#### Block Any Attack Signal from Attack Sources - End
 
 #### 404 Rate Limit Rule - Start
 resource "sigsci_site_signal_tag" "bad-response-signal" {
@@ -119,3 +115,147 @@ resource "sigsci_site_rule" "malicious-attacker-rule" {
 }
 
 #### 404 Rate Limit Rule - End
+
+#### Block Requests from Countries on the OFAC List - Start
+# https://home.treasury.gov/policy-issues/office-of-foreign-assets-control-sanctions-programs-and-information
+resource "sigsci_corp_signal_tag" "ofac" {
+  short_name  = "ofac"
+  description = "Countries on OFAC list"
+}
+
+resource "sigsci_corp_list" "ofac-countries-corp-list" {
+    name = "OFAC-Countries"
+    type = "country"
+    entries = [
+        "IR",
+        "SY",
+        "SD",
+        "KP",
+        "BY",
+        "CI",
+        "CU",
+        "CD",
+        "IQ",
+        "LR",
+        "MM",
+        "ZW",
+    ]
+}
+
+resource "sigsci_corp_rule" "ofac-rule" {
+  site_short_names = []
+  type = "request"
+  corp_scope = "global"
+  enabled = true
+  group_operator = "all"
+  reason = "OFAC Country Blocking Rule"
+  expiration = ""
+
+  conditions {
+    type     = "single"
+    field    = "country"
+    operator = "inList"
+    value = "corp.ofac-countries"
+  }
+
+  actions {
+    type = "block"
+  }
+
+  actions {
+    type = "addSignal"
+    signal = "corp.ofac" 
+  }
+
+  depends_on = [
+  sigsci_corp_list.ofac-countries-corp-list
+  ]
+}
+#### Block Requests from Countries on the OFAC List - End
+
+#### Block Requests from Known Bad User Agents - Start
+resource "sigsci_corp_signal_tag" "bad-ua" {
+  short_name  = "bad-ua"
+  description = "Known bad User Agents"
+}
+
+resource "sigsci_corp_list" "bad-ua" {
+    name = "Bad UA"
+    type = "wildcard"
+    entries = [
+        "*[Cc][Uu][Rr][Ll]*",
+        "*[Pp][Yy][Tt][Hh][Oo][Nn]*",
+        "*[Ww][Pp][Ss][Cc][Aa][Nn]*",
+        "*[Nn][Mm][Aa][Pp]*",
+        "*[Mm][Aa][Ss][Ss][Cc][Aa][Nn]*",
+    ]
+}
+
+resource "sigsci_corp_rule" "bad-ua" {
+  site_short_names = []
+  type = "request"
+  corp_scope = "global"
+  enabled = true
+  group_operator = "all"
+  reason = "Bad User Agents Blocking Rule"
+  expiration = ""
+
+  conditions {
+    type     = "single"
+    field    = "useragent"
+    operator = "inList"
+    value = "corp.bad-ua"
+  }
+
+  actions {
+    type = "block"
+  }
+
+  actions {
+    type = "addSignal"
+    signal = "corp.bad-ua" 
+  }
+}
+#### Block Requests from Known Bad User Agents - Start
+
+
+#### Block Requests with Invalid Host Header - Start
+resource "sigsci_corp_signal_tag" "missing-domain-request-signal" {
+  short_name  = "missing-domain-request"
+  description = "Tagging requests with missing domain"
+}
+
+resource "sigsci_corp_list" "domain-list" {
+    name = "Domain List"
+    type = "wildcard"
+    entries = [ // Change values in this list to reflect your domain
+        "example.com",
+        "*.example.com", 
+    ]
+}
+
+resource "sigsci_corp_rule" "domain-rule" {
+  site_short_names = []
+  type = "request"
+  corp_scope = "global"
+  enabled = true
+  group_operator = "all"
+  reason = "Identify requests without valid domain in host header"
+  expiration = ""
+
+  conditions {
+    type     = "single"
+    field    = "domain"
+    operator = "notInList"
+    value = "corp.domain-list"
+  }
+
+  actions {
+    type   = "addSignal"
+    signal = "corp.missing-domain-request" 
+  }
+  depends_on = [
+  sigsci_corp_list.domain-list
+  ]
+}
+#### Block Requests with Invalid Host Header - End
