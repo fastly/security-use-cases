@@ -35,7 +35,7 @@ resource "sigsci_corp_list" "attack-sources-signals-list" {
 }
 
 resource "sigsci_corp_signal_tag" "malicious-attacker-signal" {
-  short_name  = "corp.malicious-attacker"
+  short_name  = "malicious-attacker"
   description = "Identification of attacks from malicious IPs"
 }
 
@@ -59,13 +59,14 @@ resource "sigsci_corp_rule" "malicious-attacker-rule" {
       type     = "single"
       field    = "signalType"
       operator = "inList"
-      value = "corp.any-attack-signal"
+      # value = "corp.any-attack-signal"
+      value    = sigsci_corp_list.any-attack-signal-list.id
     }
     conditions {
       type     = "single"
       field    = "signalType"
       operator = "inList"
-      value = "corp.attack-sources-signals"
+      value    = sigsci_corp_list.attack-sources-signals-list.id
     }
   }
   actions {
@@ -73,8 +74,14 @@ resource "sigsci_corp_rule" "malicious-attacker-rule" {
   }
     actions {
     type = "addSignal"
-    signal = "corp.malicious-attacker" 
+    # signal = "corp.malicious-attacker" 
+    signal = sigsci_corp_signal_tag.malicious-attacker-signal.id
   }
+
+  depends_on = [
+    sigsci_corp_list.any-attack-signal-list,
+    sigsci_corp_list.attack-sources-signals-list
+  ]
 }
 #### Block Any Attack Signal from Attack Sources - End
 
@@ -109,9 +116,13 @@ resource "sigsci_site_rule" "malicious-attacker-rule" {
     threshold = 5,
     interval =  1,
     duration  = 600,
-    clientIdentifiers = "ip"
+    # clientIdentifiers = "ip" Defaults to IP
   }
-  signal = "site.bad-response"
+  signal = sigsci_site_signal_tag.bad-response-signal.id
+
+  depends_on = [
+    sigsci_site_signal_tag.bad-response-signal
+  ]
 }
 
 #### 404 Rate Limit Rule - End
@@ -155,7 +166,7 @@ resource "sigsci_corp_rule" "ofac-rule" {
     type     = "single"
     field    = "country"
     operator = "inList"
-    value = "corp.ofac-countries"
+    value = sigsci_corp_list.ofac-countries-corp-list.id
   }
 
   actions {
@@ -164,11 +175,12 @@ resource "sigsci_corp_rule" "ofac-rule" {
 
   actions {
     type = "addSignal"
-    signal = "corp.ofac" 
+    signal = sigsci_corp_signal_tag.ofac.id
   }
 
   depends_on = [
-  sigsci_corp_list.ofac-countries-corp-list
+    sigsci_corp_list.ofac-countries-corp-list,
+    sigsci_corp_signal_tag.ofac
   ]
 }
 #### Block Requests from Countries on the OFAC List - End
@@ -204,7 +216,7 @@ resource "sigsci_corp_rule" "bad-ua" {
     type     = "single"
     field    = "useragent"
     operator = "inList"
-    value = "corp.bad-ua"
+    value = sigsci_corp_list.bad-ua.id
   }
 
   actions {
@@ -213,8 +225,12 @@ resource "sigsci_corp_rule" "bad-ua" {
 
   actions {
     type = "addSignal"
-    signal = "corp.bad-ua" 
+    signal = sigsci_corp_signal_tag.bad-ua.id
   }
+  depends_on = [
+    sigsci_corp_list.bad-ua,
+    sigsci_corp_signal_tag.bad-ua,
+  ]
 }
 #### Block Requests from Known Bad User Agents - Start
 
@@ -247,15 +263,102 @@ resource "sigsci_corp_rule" "domain-rule" {
     type     = "single"
     field    = "domain"
     operator = "notInList"
-    value = "corp.domain-list"
+    value = sigsci_corp_list.domain-list.id
   }
 
   actions {
     type   = "addSignal"
-    signal = "corp.missing-domain-request" 
+    signal = sigsci_corp_signal_tag.missing-domain-request-signal.id
   }
   depends_on = [
-  sigsci_corp_list.domain-list
+    sigsci_corp_list.domain-list,
+    sigsci_corp_signal_tag.missing-domain-request-signal,
   ]
 }
 #### Block Requests with Invalid Host Header - End
+
+#### Lower Attack Thresholds - Start
+resource "sigsci_corp_signal_tag" "any-attack-signal" {
+  short_name  = "any-attack"
+  description = "Tagging requests with that match any attack"
+}
+
+resource "sigsci_corp_rule" "any-attack-rule" {
+  site_short_names = []
+  type            = "request"
+  corp_scope      = "global"
+  group_operator  = "all"
+  enabled         = true
+  reason          = "Add a signal for any attack"
+  expiration      = ""
+
+  conditions {
+    type     = "multival"
+    field    = "signal"
+    group_operator = "all"
+    operator = "exists"
+
+    conditions {
+      type     = "single"
+      field    = "signalType"
+      operator = "inList"
+      # value = "corp.any-attack-signal"
+      value = sigsci_corp_list.any-attack-signal-list.id
+    }
+  }
+    actions {
+    type = "addSignal"
+    signal = sigsci_corp_signal_tag.any-attack-signal.id
+  }
+  depends_on = [
+    sigsci_corp_list.any-attack-signal-list,
+    sigsci_corp_signal_tag.any-attack-signal,
+  ]
+}
+
+# Docs. https://registry.terraform.io/providers/signalsciences/sigsci/latest/docs/resources/site_alert
+resource "sigsci_site_alert" "any-attack-site-alert-1min" {
+  site_short_name    = var.NGWAF_SITE
+  tag_name           = sigsci_corp_signal_tag.any-attack-signal.id
+  long_name          = "any attack alert 1 min"
+  interval           = 1
+  threshold          = 5
+  enabled            = true
+  action             = "info"
+  skip_notifications = true
+
+  depends_on = [
+    sigsci_corp_signal_tag.any-attack-signal
+  ]
+}
+
+resource "sigsci_site_alert" "any-attack-site-alert-10min" {
+  site_short_name    = var.NGWAF_SITE
+  tag_name           = sigsci_corp_signal_tag.any-attack-signal.id
+  long_name          = "any attack alert 10 min"
+  interval           = 10
+  threshold          = 50
+  enabled            = true
+  action             = "info"
+  skip_notifications = true
+
+  depends_on = [
+    sigsci_corp_signal_tag.any-attack-signal
+  ]
+}
+
+resource "sigsci_site_alert" "any-attack-site-alert-60min" {
+  site_short_name    = var.NGWAF_SITE
+  tag_name           = sigsci_corp_signal_tag.any-attack-signal.id
+  long_name          = "any attack alert 60 min"
+  interval           = 60
+  threshold          = 200
+  enabled            = true
+  action             = "info"
+  skip_notifications = true
+
+  depends_on = [
+    sigsci_corp_signal_tag.any-attack-signal
+  ]
+}
+#### Lower Attack Thresholds - End
