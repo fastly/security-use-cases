@@ -1,5 +1,20 @@
 # security-use-cases
-Placeholder for the cookbooks
+As much fun as clicking and typing are, how about we give our weary hands a break and let Terraform do the work.
+
+# What's all here?
+Much inspiration from [10 Pro Tips for Getting the Most out of your Next-Gen WAF](https://www.fastly.com/blog/10-pro-tips-for-getting-the-most-out-of-your-next-gen-waf)
+
+# What's been implemented so far?
+## In Gold Standard Starter
+* Tune Attack Thresholds
+* Block Attacks from Malicious IPs
+* Block Requests from non-revenue generating countries
+
+## In Use Cases Plus
+* Block Requests from Known Bad User Agents
+* Block Requests with Invalid Host Header
+* Rate Limiting Enumeration Attempts
+
 
 # step 0
 Install terraform
