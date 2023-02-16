@@ -21,6 +21,7 @@ resource "sigsci_corp_list" "system-attack-signals-list" {
       "TRAVERSAL",
       "USERAGENT",
       "XSS",
+      "LOG4J-JNDI",
     ]
 }
 
