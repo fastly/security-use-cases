@@ -103,13 +103,13 @@ resource "sigsci_corp_list" "blocked-countries-corp-list" {
     description = "Block countries that are not revenue generating. KP is North Korea."
 }
 
-resource "sigsci_corp_rule" "ofac-rule" {
+resource "sigsci_corp_rule" "blocked-countries-corp-rule" {
   site_short_names = []
   type = "request"
   corp_scope = "global"
   enabled = true
   group_operator = "all"
-  reason = "OFAC Country Blocking Rule"
+  reason = "Country Blocking Rule"
   expiration = ""
 
   conditions {

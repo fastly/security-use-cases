@@ -1,10 +1,22 @@
-Malicious Attacker
-This Terraform file will build a signal and a request rule that identifies attack requests from known malicious IP's.
+# What's in the Gold Standard Starter?
 
-The default attack signals as defined as defined here: https://docs.fastly.com/signalsciences/faq/system-tags/#attacks.
+* A Request Rule that adds a Custom Signal for requests that match for System Attacks AND frequent attack sources
+* A List and a Rule for a default Geoblocking policy
+* A Request Rule that consolidates System Attacks under one Signal 
+* An Alert that lowers thresholds for Any System Attack Signal
+* A custom rule to tag a base set of Anomaly signals
 
-As well as the known malicious IP's from SANS, Tor, and SigSci-IP.
 
-The rule should look like this:
+# Step 0
+[Install terraform](https://developer.hashicorp.com/terraform/downloads)
 
-![182690226-6d2ce569-f6c3-4483-8e8a-6fbb1a31a842](https://user-images.githubusercontent.com/113071464/210285988-561b7894-e6cc-4362-973d-16452701d1a7.png)
+# Step 1
+Run `terraform init` within the gold-standard-starter directory
+
+# Step 2
+Run `terraform apply` within the gold-standard-starter directory
+    - You will be prompted to enter details. Enter the appropriate information.
+    - You must respond with "yes" for the terraform configuration to actually apply
+
+# Need to restart?
+Just run `terraform destroy` to delete any resources created by terraform after running `terraform apply`
