@@ -4,40 +4,52 @@
 # environment variables must be available using "TF_VAR_*" in your terminal. 
 # For example, `echo $TF_VAR_NGWAF_CORP` should return your intended corp.
 provider "sigsci" {
-  corp = "${var.NGWAF_CORP}"
-  email = "${var.NGWAF_EMAIL}"
-  auth_token = "${var.NGWAF_TOKEN}"
+  corp        = var.NGWAF_CORP
+  email       = var.NGWAF_EMAIL
+  auth_token  = var.NGWAF_TOKEN
 }
 #### Supply NGWAF API authentication - End
 
 #### Block Any Attack Signal from Attack Sources - Start
 resource "sigsci_corp_list" "system-attack-signals-list" {
-    name = "system-attack-signals"
-    type = "signal"
-    entries = [
-      "BACKDOOR",
-      "CMDEXE",
-      "SQLI",
-      "TRAVERSAL",
-      "USERAGENT",
-      "XSS",
-      "LOG4J-JNDI",
-    ]
+  name = "system-attack-signals"
+  type = "signal"
+  entries = [
+    "BACKDOOR",
+    "CMDEXE",
+    "SQLI",
+    "TRAVERSAL",
+    "USERAGENT",
+    "XSS",
+    "LOG4J-JNDI",
+  ]
+
+  # depends_on = [
+  #   time_sleep.wait_for_some_time,
+  # ]
 }
 
 resource "sigsci_corp_list" "attack-sources-signals-list" {
-    name = "attack-sources-signals"
-    type = "signal"
-    entries = [
-      "SIGSCI-IP",
-      "SANS",
-      "TORNODE",
-    ]
+  name = "attack-sources-signals"
+  type = "signal"
+  entries = [
+    "SIGSCI-IP",
+    "SANS",
+    "TORNODE",
+  ]
+
+  # depends_on = [
+  #   time_sleep.wait_for_some_time,
+  # ]
 }
 
 resource "sigsci_corp_signal_tag" "malicious-attacker-signal" {
   short_name  = "malicious-attacker"
   description = "Identification of attacks from attacking IPs"
+
+  # depends_on = [
+  #   time_sleep.wait_for_some_time
+  # ]
 }
 
 resource "sigsci_corp_rule" "malicious-attacker-rule" {
@@ -80,7 +92,7 @@ resource "sigsci_corp_rule" "malicious-attacker-rule" {
 
   depends_on = [
     sigsci_corp_list.system-attack-signals-list,
-    sigsci_corp_list.attack-sources-signals-list
+    sigsci_corp_list.attack-sources-signals-list,
   ]
 }
 #### Block Any Attack Signal from Attack Sources - End
@@ -95,12 +107,12 @@ resource "sigsci_corp_signal_tag" "blocked-countries-corp-signal" {
 }
 
 resource "sigsci_corp_list" "blocked-countries-corp-list" {
-    name = "blocked-countries"
-    type = "country"
-    entries = [
-        "KP",
-    ]
-    description = "Block countries that are not revenue generating. KP is North Korea."
+  name = "blocked-countries"
+  type = "country"
+  entries = [
+      "KP",
+  ]
+  description = "Block countries that are not revenue generating. KP is North Korea."
 }
 
 resource "sigsci_corp_rule" "blocked-countries-corp-rule" {
@@ -132,6 +144,7 @@ resource "sigsci_corp_rule" "blocked-countries-corp-rule" {
   depends_on = [
     sigsci_corp_list.blocked-countries-corp-list,
     sigsci_corp_signal_tag.blocked-countries-corp-signal,
+    sigsci_corp_rule.malicious-attacker-rule,
   ]
 }
 #### Block Requests from Countries that are not revenue generating - End
@@ -193,7 +206,7 @@ resource "sigsci_site_alert" "any-attack-site-alert-1min" {
   skip_notifications = true
 
   depends_on = [
-    sigsci_corp_signal_tag.system-attack-signal
+    sigsci_corp_signal_tag.system-attack-signal,
   ]
 }
 
@@ -285,3 +298,78 @@ resource "sigsci_corp_rule" "anomaly-attack-corp-rule" {
   ]
 }
 #### Anomoly Signals - End
+
+#### Rate Limiting Enumeration Attempts - Start
+resource "sigsci_site_signal_tag" "bad-response-signal" {
+  site_short_name   = var.NGWAF_SITE
+  name              = "bad-response"
+  description       = "Identification of attacks from malicious IPs"
+
+  # depends_on = [
+    # time_sleep.wait_for_some_time,
+  # ]
+}
+
+resource "sigsci_site_rule" "enumeration-attack-rule" {
+  site_short_name = var.NGWAF_SITE
+  type            = "rateLimit"
+  group_operator  = "any"
+  enabled         = true
+  reason          = "Blocking IPs that have too many bad responses. Likely an enumeration attack."
+  expiration      = ""
+
+  conditions {
+    type      = "single"
+    field     = "responseCode"
+    operator  = "like"
+    value     = "4[0-9][0-9]"
+  }
+  conditions {
+    type      = "single"
+    field     = "responseCode"
+    operator  = "like"
+    value     = "5[0-9][0-9]"
+  }
+  # actions {
+  #   type          = "blockSignal"
+  #   signal        = "ALL-REQUESTS"
+  #   response_code = 406
+  # }
+
+  actions {
+    type = "logRequest"
+    signal = sigsci_site_signal_tag.bad-response-signal.id
+  }
+
+  rate_limit = {
+    threshold = 10,
+    interval  =  1,
+    duration  = 600,
+    # clientIdentifiers = "ip" Defaults to IP
+  }
+  signal = sigsci_site_signal_tag.bad-response-signal.id
+
+  depends_on = [
+    sigsci_site_signal_tag.bad-response-signal,
+    sigsci_corp_rule.anomaly-attack-corp-rule,
+  ]
+}
+
+#### Rate Limiting Enumeration Attempts - End
+
+
+
+#### Adding Delay to avoid NGWAF API Rate Limiting - Start
+#### https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep
+
+# This resource will destroy (at least) 5 seconds after null_resource.next
+# resource "null_resource" "previous" {}
+
+# resource "time_sleep" "wait_for_some_time" {
+#   depends_on = [null_resource.previous]
+
+#   destroy_duration  = "5s"
+#   create_duration   = "5s"
+# }
+
+#### Adding Delay to avoid NGWAF API Rate Limiting - End
