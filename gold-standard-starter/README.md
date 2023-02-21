@@ -21,7 +21,7 @@ Run `terraform init` within the gold-standard-starter directory
 Run `terraform apply` within the gold-standard-starter directory
     - You will be prompted to enter details. Enter the appropriate information.
     - You must respond with "yes" for the terraform configuration to actually apply
-Alternatively, you may run `terraform apply -var="NGWAF_CORP=YOUR_NGWAF_CORP_NAME" -var="NGWAF_SITE=YOUR_NGWAF_SITE_NAME" -var="NGWAF_EMAIL=YOUR_NGWAF_ACCOUNT_EMAIL"` and then enter your API key when prompted.
+Alternatively, you may run `terraform apply -parallelism=1 -var="NGWAF_CORP=YOUR_NGWAF_CORP_NAME" -var="NGWAF_SITE=YOUR_NGWAF_SITE_NAME" -var="NGWAF_EMAIL=YOUR_NGWAF_ACCOUNT_EMAIL" ` and then enter your API key when prompted.
 
 # Need to restart?
 Just run `terraform destroy` to delete any resources created by terraform after running `terraform apply`. You may supply variables with the `terraform destroy` command in the same fashion as in Step 2

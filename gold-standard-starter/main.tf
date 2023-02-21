@@ -23,10 +23,6 @@ resource "sigsci_corp_list" "system-attack-signals-list" {
     "XSS",
     "LOG4J-JNDI",
   ]
-
-  # depends_on = [
-  #   time_sleep.wait_for_some_time,
-  # ]
 }
 
 resource "sigsci_corp_list" "attack-sources-signals-list" {
@@ -37,19 +33,11 @@ resource "sigsci_corp_list" "attack-sources-signals-list" {
     "SANS",
     "TORNODE",
   ]
-
-  # depends_on = [
-  #   time_sleep.wait_for_some_time,
-  # ]
 }
 
 resource "sigsci_corp_signal_tag" "malicious-attacker-signal" {
   short_name  = "malicious-attacker"
   description = "Identification of attacks from attacking IPs"
-
-  # depends_on = [
-  #   time_sleep.wait_for_some_time
-  # ]
 }
 
 resource "sigsci_corp_rule" "malicious-attacker-rule" {
@@ -144,7 +132,6 @@ resource "sigsci_corp_rule" "blocked-countries-corp-rule" {
   depends_on = [
     sigsci_corp_list.blocked-countries-corp-list,
     sigsci_corp_signal_tag.blocked-countries-corp-signal,
-    sigsci_corp_rule.malicious-attacker-rule,
   ]
 }
 #### Block Requests from Countries that are not revenue generating - End
@@ -305,9 +292,6 @@ resource "sigsci_site_signal_tag" "bad-response-signal" {
   name              = "bad-response"
   description       = "Identification of attacks from malicious IPs"
 
-  # depends_on = [
-    # time_sleep.wait_for_some_time,
-  # ]
 }
 
 resource "sigsci_site_rule" "enumeration-attack-rule" {
@@ -351,25 +335,7 @@ resource "sigsci_site_rule" "enumeration-attack-rule" {
 
   depends_on = [
     sigsci_site_signal_tag.bad-response-signal,
-    sigsci_corp_rule.anomaly-attack-corp-rule,
   ]
 }
 
 #### Rate Limiting Enumeration Attempts - End
-
-
-
-#### Adding Delay to avoid NGWAF API Rate Limiting - Start
-#### https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep
-
-# This resource will destroy (at least) 5 seconds after null_resource.next
-# resource "null_resource" "previous" {}
-
-# resource "time_sleep" "wait_for_some_time" {
-#   depends_on = [null_resource.previous]
-
-#   destroy_duration  = "5s"
-#   create_duration   = "5s"
-# }
-
-#### Adding Delay to avoid NGWAF API Rate Limiting - End
