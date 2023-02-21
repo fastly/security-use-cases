@@ -166,12 +166,10 @@ resource "sigsci_corp_rule" "system-attack-rule" {
       value = sigsci_corp_list.system-attack-signals-list.id
     }
   }
-
-  # Easily go into blocking by uncommenting the following action
+  #### Easily go into blocking by uncommenting the following action
   # actions {
   #   type = "block"
   # }
-
     actions {
     type = "addSignal"
     signal = sigsci_corp_signal_tag.system-attack-signal.id
@@ -230,3 +228,60 @@ resource "sigsci_site_alert" "any-attack-site-alert-60min" {
 }
 #### Lower Attack Thresholds - End
 
+#### Anomoly Signals - Start
+resource "sigsci_corp_signal_tag" "anomaly-attack-signal" {
+  short_name  = "anomaly-attack"
+  description = "Identification of attacks from Anomaly traffic"
+}
+
+resource "sigsci_corp_list" "anomaly-attack-signals-list" {
+    name = "anomaly-attack-signals"
+    type = "signal"
+    entries = [
+      "ABNORMALPATH",
+      "CODEINJECTION",
+      "DOUBLEENCODING",
+      "DUPLICATE-HEADERS",
+      "NOTUTF8",
+      "MALFORMED-DATA",
+      "NOUA",
+      "PRIVATEFILE",
+      "RESPONSESPLIT",
+    ]
+}
+
+resource "sigsci_corp_rule" "anomaly-attack-corp-rule" {
+  site_short_names = []
+  type            = "request"
+  corp_scope      = "global"
+  group_operator  = "all"
+  enabled         = true
+  reason          = "Identify attacks from Anomaly Traffic"
+  expiration      = ""
+  conditions {
+    type     = "multival"
+    field    = "signal"
+    group_operator = "all"
+    operator = "exists"
+
+    conditions {
+      type     = "single"
+      field    = "signalType"
+      operator = "inList"
+      value = sigsci_corp_list.anomaly-attack-signals-list.id
+    }
+  }
+  actions {
+    type = "addSignal"
+    signal = sigsci_corp_signal_tag.anomaly-attack-signal.id
+  }
+  #### Easily go into blocking by uncommenting the following action
+  # actions {
+  #   type = "block"
+  # }
+  depends_on = [
+    sigsci_corp_list.anomaly-attack-signals-list,
+    sigsci_corp_signal_tag.anomaly-attack-signal,
+  ]
+}
+#### Anomoly Signals - End
