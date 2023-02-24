@@ -11,6 +11,9 @@ As much fun as clicking and typing are, how about we give our weary hands a brea
 # Pre-requisites
 [Install terraform](https://developer.hashicorp.com/terraform/downloads)
 
+# New to Terraform?
+Check out [Terraform for beginners](https://geekflare.com/terraform-for-beginners/)
+
 # Want some new functionality or have questions?
 Reach out Max Anderson, Guy Brown, or Brooks Cunningham on the TSG team.
 
