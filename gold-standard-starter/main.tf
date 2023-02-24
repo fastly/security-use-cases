@@ -187,7 +187,7 @@ resource "sigsci_site_alert" "any-attack-site-alert-1min" {
   tag_name           = sigsci_corp_signal_tag.system-attack-signal.id
   long_name          = "Any system attack alert 1 min"
   interval           = 1
-  threshold          = 10
+  threshold          = 50
   enabled            = true
   action             = "info"
   skip_notifications = true
@@ -202,7 +202,7 @@ resource "sigsci_site_alert" "any-attack-site-alert-10min" {
   tag_name           = sigsci_corp_signal_tag.system-attack-signal.id
   long_name          = "Any system attack alert 10 min"
   interval           = 10
-  threshold          = 50
+  threshold          = 350
   enabled            = true
   action             = "info"
   skip_notifications = true
@@ -217,7 +217,7 @@ resource "sigsci_site_alert" "any-attack-site-alert-60min" {
   tag_name           = sigsci_corp_signal_tag.system-attack-signal.id
   long_name          = "Any system attack alert 60 min"
   interval           = 60
-  threshold          = 200
+  threshold          = 1800
   enabled            = true
   action             = "info"
   skip_notifications = true

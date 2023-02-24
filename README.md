@@ -5,8 +5,7 @@ As much fun as clicking and typing are, how about we give our weary hands a brea
 
 # What's been implemented so far?
 ## Gold Standard Starter
-[Quick start your implementations here.](https://github.com/fastly/security-use-cases/tree/main/gold-standard-starter)
-
+[Quick start your Fastly NextGen WAF implementations](https://github.com/fastly/security-use-cases/tree/main/gold-standard-starter)
 
 # Pre-requisites
 [Install terraform](https://developer.hashicorp.com/terraform/downloads)
