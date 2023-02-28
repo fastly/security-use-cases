@@ -12,7 +12,8 @@
 
 
 # Step 0 - Pre-requisites
-[Install terraform](https://developer.hashicorp.com/terraform/downloads)
+* [Install terraform](https://developer.hashicorp.com/terraform/downloads)
+* [Create an NGWAF API Key](https://docs.fastly.com/signalsciences/developer/using-our-api/#about-api-access-tokens)
 
 # Step 1
 Run `terraform init` within the gold-standard-starter directory
