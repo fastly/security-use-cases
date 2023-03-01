@@ -12,6 +12,7 @@
 
 
 # Step 0 - Pre-requisites
+* [Clone this repo](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository)
 * [Install terraform](https://developer.hashicorp.com/terraform/downloads)
 * [Create an NGWAF API Key](https://docs.fastly.com/signalsciences/developer/using-our-api/#about-api-access-tokens)
 
