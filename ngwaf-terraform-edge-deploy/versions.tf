@@ -6,5 +6,8 @@ terraform {
       source  = "fastly/fastly"
       version = ">= 3.0.4"
     }
+    sigsci = {
+      source = "signalsciences/sigsci"
+    }
   }
 }

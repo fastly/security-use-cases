@@ -53,11 +53,13 @@ resource "fastly_service_vcl" "frontend-vcl-service" {
 
   lifecycle {
     ignore_changes = [
-      dictionary,
+      # dictionary,
       # dynamicsnippet,
       product_enablement,
     ]
   }
+
+  force_destroy = true
 }
 
 # resource "fastly_service_dictionary_items" "edge_security_dictionary_items" {
@@ -72,82 +74,29 @@ resource "fastly_service_vcl" "frontend-vcl-service" {
 #   }
 # }
 
-#### $ terraform import fastly_service_dynamic_snippet_content.content xxxxxxxxxxxxxxxxxxxx/xxxxxxxxxxxxxxxxxxxx
-# terraform import fastly_service_dynamic_snippet_content.dynamic_snip_ngwaf_config_init BmK2uM1WoI1cZNbnyj0dC7/L2FCDUkD2OoTlgh9QHxc80 
-# resource "fastly_service_dynamic_snippet_content" "dynamic_snip_ngwaf_config_init" {
-#   for_each = {
-#     for d in fastly_service_vcl.frontend-vcl-service.dynamicsnippet : d.name => d if d.name == "My Dynamic Snippet"
-#   }
-#   service_id      = fastly_service_vcl.frontend-vcl-service.id
-#   snippet_id      = each.value.snippet_id
-#   manage_snippets = false
-#   content = ""
-#   # content         = "if ( req.url ) {\n set req.http.my-snippet-test-header = \"true\";\n}"
-# }
-
-#### Edge deploy and sync - Start
-resource "null_resource" "create_or_update_ngwaf_edge_deploy" {
-  # This only needs to run once for each NGWAF site/workspace
-  # triggers = {
-  #   always_run = timestamp()
-  # }
-
-# https://docs.fastly.com/signalsciences/install-guides/edge/edge-deployment/
-# curl -H "x-api-user:$SIGSCI_EMAIL" -H "x-api-token:$SIGSCI_TOKEN" \
-# -H "Content-Type: application/json" -X PUT \
-# https://dashboard.signalsciences.net/api/v0/corps/{corpName}/sites/{siteName}/edgeDeployment
-
-  provisioner "local-exec" {
-    command = "curl -X PUT https://dashboard.signalsciences.net/api/v0/corps/${var.NGWAF_CORP}/sites/${var.NGWAF_SITE}/edgeDeployment -H x-api-user:${var.NGWAF_EMAIL} -H x-api-token:${var.NGWAF_TOKEN} -H Content-Type:application/json"
-  }
-  
-  depends_on = [
-    fastly_service_vcl.frontend-vcl-service,
-  ]
-}
-
-resource "null_resource" "create_or_update_ngwaf_edge_deploy_service" {
-  # This resource MUST run every time to resync the VCL service origins with the NGWAF edge deploy origins
-  triggers = {
-    always_run = timestamp()
-  }
-
-# https://docs.fastly.com/signalsciences/install-guides/edge/edge-deployment/#mapping-to-the-fastly-service
-# curl -H "x-api-user:${SIGSCI_EMAIL}" -H "x-api-token:${SIGSCI_TOKEN}" \
-# -H "Fastly-Key: ${FASTLY_KEY}" -H 'Content-Type: application/json' -X PUT \
-# https://dashboard.signalsciences.net/api/v0/corps/{corpName}/sites/{siteName}/edgeDeployment/{fastlySID}
-
-  provisioner "local-exec" {
-    command = "curl -X PUT https://dashboard.signalsciences.net/api/v0/corps/${var.NGWAF_CORP}/sites/${var.NGWAF_SITE}/edgeDeployment/${fastly_service_vcl.frontend-vcl-service.id} -H x-api-user:${var.NGWAF_EMAIL} -H x-api-token:${var.NGWAF_TOKEN} -H Fastly-Key:${var.FASTLY_API_KEY} -H Content-Type:application/json"
-  }
-  
-  depends_on = [
-    null_resource.create_or_update_ngwaf_edge_deploy,
-    fastly_service_vcl.frontend-vcl-service,
-  ]
-}
-
-#### https://registry.terraform.io/providers/hashicorp/external/latest/docs/data-sources/external
-# data "external" "create_or_update_ngwaf_edge_deploy_service" {
-#   # triggers = {
-#   #   always_run = timestamp()
-#   # }
-
-#   # program = ["python", "${path.module}/example-data-source.py"]
-#   program = ["/bin/sh", "-c", "curl -X PUT https://dashboard.signalsciences.net/api/v0/corps/${var.NGWAF_CORPNAME}/sites/${var.NGWAF_SITENAME}/edgeDeployment/${fastly_service_vcl.frontend-vcl-service.id} -H x-api-user:${var.NGWAF_EMAIL} -H x-api-token:${var.NGWAF_TOKEN} -H Fastly-Key:${var.FASTLY_API_KEY} -H Content-Type:application/json"]
-
-#   depends_on = [
-#     null_resource.create_or_update_ngwaf_edge_deploy,
-#     fastly_service_vcl.frontend-vcl-service,
-#   ]
-# }
-
-# output "fastly_service_output" {
-#   value = fastly_service_vcl.frontend-vcl-service.id
-# }
-
 #### Fastly VCL Service - End
 
-output "how_to_enjoy" {
+
+provider "sigsci" {
+  corp = var.NGWAF_CORP
+  email = var.NGWAF_EMAIL
+  auth_token = var.NGWAF_TOKEN
+  fastly_key = var.FASTLY_API_KEY
+}
+
+resource "sigsci_edge_deployment" "ngwaf_edge_site_service" {
+  # https://registry.terraform.io/providers/signalsciences/sigsci/latest/docs/resources/edge_deployment
+  site_short_name = var.NGWAF_SITE
+}
+
+resource "sigsci_edge_deployment_service" "ngwaf_edge_service_link" {
+  # https://registry.terraform.io/providers/signalsciences/sigsci/latest/docs/resources/edge_deployment_service
+  site_short_name = var.NGWAF_SITE
+  fastly_sid      = fastly_service_vcl.frontend-vcl-service.id
+}
+
+#### Edge deploy and sync - End
+
+output "live_laugh_love_ngwaf" {
   value = "curl -i https://${var.USER_VCL_SERVICE_DOMAIN_NAME}/anything/whydopirates?likeurls=theargs"
 }
