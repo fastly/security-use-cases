@@ -16,9 +16,9 @@ Check out [Terraform for beginners](https://geekflare.com/terraform-for-beginner
 
 Steps
 * Update `VCL_SERVICE_DOMAIN_NAME` in variables.tf with your own custom domain name.
-* run `terraform apply`
+* run `terraform apply` or `terraform apply -auto-approve`
 * Enjoy!
-* run `terraform destroy` to start fresh
+* run `terraform destroy` or `terraform destroy -auto-approve` to start fresh
 
 # Noteworthy configurations
 The following is set in the lifecycle for the VCL service resource.
@@ -26,11 +26,12 @@ The following is set in the lifecycle for the VCL service resource.
 ```
   lifecycle {
     ignore_changes = [
-      dynamicsnippet,
       product_enablement,
     ]
   }
 ```
+
+
 # Want some new functionality or have questions?
 Reach out Max Anderson, Guy Brown, or Brooks Cunningham on the TSG team.
 
