@@ -22,34 +22,41 @@ resource "fastly_service_vcl" "frontend-vcl-service" {
   }
 
 #   #### Only disable caching for testing. Do not disable caching for production traffic.
-#   snippet {
-#     name = "Disable caching"
-#     content = file("${path.module}/vcl/disable_caching.vcl")
-#     type = "recv"
-#     priority = 100
-#   }
+  snippet {
+    name = "Disable caching"
+    content = file("${path.module}/vcl/disable_caching.vcl")
+    type = "recv"
+    priority = 100
+  }
+
+  snippet {
+    name = "Debug headers"
+    content = file("${path.module}/vcl/debug_headers.vcl")
+    type = "fetch"
+    priority = 110
+  }
 
   #### NGWAF Dynamic Snippets - MANAGED BY FASTLY - Start
-#   dynamicsnippet {
-#     name     = "ngwaf_config_init"
-#     type     = "init"
-#     priority = 0
-#   }
-#   dynamicsnippet {
-#     name     = "ngwaf_config_miss"
-#     type     = "init"
-#     priority = 150
-#   }
-#   dynamicsnippet {
-#     name     = "ngwaf_config_pass"
-#     type     = "init"
-#     priority = 150
-#   }
+  dynamicsnippet {
+    name     = "ngwaf_config_init"
+    type     = "init"
+    priority = 0
+  }
+  dynamicsnippet {
+    name     = "ngwaf_config_miss"
+    type     = "miss"
+    priority = 9000
+  }
+  dynamicsnippet {
+    name     = "ngwaf_config_pass"
+    type     = "pass"
+    priority = 9000
+  }
   #### NGWAF Dynamic Snippets - MANAGED BY FASTLY - End
 
-  # dictionary {
-  #   name       = var.Edge_Security_dictionary
-  # }
+  dictionary {
+    name       = var.Edge_Security_dictionary
+  }
 
   lifecycle {
     ignore_changes = [
@@ -62,17 +69,57 @@ resource "fastly_service_vcl" "frontend-vcl-service" {
   force_destroy = true
 }
 
-# resource "fastly_service_dictionary_items" "edge_security_dictionary_items" {
-#   for_each = {
-#   for d in fastly_service_vcl.frontend-vcl-service.dictionary : d.name => d if d.name == var.Edge_Security_dictionary
-#   }
-#   service_id = fastly_service_vcl.frontend-vcl-service.id
-#   dictionary_id = each.value.dictionary_id
+resource "fastly_service_dictionary_items" "edge_security_dictionary_items" {
+  for_each = {
+  for d in fastly_service_vcl.frontend-vcl-service.dictionary : d.name => d if d.name == var.Edge_Security_dictionary
+  }
+  service_id = fastly_service_vcl.frontend-vcl-service.id
+  dictionary_id = each.value.dictionary_id
 
-#   items = {
-#     Enabled: "100"
-#   }
-# }
+  items = {
+    Enabled: "100"
+  }
+}
+
+resource "fastly_service_dynamic_snippet_content" "ngwaf_config_init" {
+  for_each = {
+  for d in fastly_service_vcl.frontend-vcl-service.dynamicsnippet : d.name => d if d.name == "ngwaf_config_init"
+  }
+
+  service_id = fastly_service_vcl.frontend-vcl-service.id
+  snippet_id = each.value.snippet_id
+
+  content = "### Fastly managed ngwaf_config_init"
+  
+  manage_snippets = false
+}
+
+resource "fastly_service_dynamic_snippet_content" "ngwaf_config_miss" {
+  for_each = {
+  for d in fastly_service_vcl.frontend-vcl-service.dynamicsnippet : d.name => d if d.name == "ngwaf_config_miss"
+  }
+
+  service_id = fastly_service_vcl.frontend-vcl-service.id
+  snippet_id = each.value.snippet_id
+
+  content = "### Fastly managed ngwaf_config_miss"
+
+  manage_snippets = false
+}
+
+resource "fastly_service_dynamic_snippet_content" "ngwaf_config_pass" {
+  for_each = {
+  for d in fastly_service_vcl.frontend-vcl-service.dynamicsnippet : d.name => d if d.name == "ngwaf_config_pass"
+  }
+
+  service_id = fastly_service_vcl.frontend-vcl-service.id
+  snippet_id = each.value.snippet_id
+
+  content = "### Fastly managed ngwaf_config_pass"
+
+  manage_snippets = false
+}
+
 
 #### Fastly VCL Service - End
 
