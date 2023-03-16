@@ -1,9 +1,7 @@
-# security-use-cases
+# NGWAF Edge deployment
 As much fun as clicking and typing are, how about we give our weary hands a break and let Terraform do the work?
 
-# What's been implemented so far?
-## Gold Standard Starter
-[Quick start your Fastly NextGen WAF implementations](https://github.com/fastly/security-use-cases/tree/main/gold-standard-starter)
+This terraform implementation will allow you to quickly spin up a VCL service with an NGWAF edge deployment using dynamic snippets.
 
 # Pre-requisites
 * [Clone this repo](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository)
@@ -21,7 +19,7 @@ Steps
 * run `terraform destroy` or `terraform destroy -auto-approve` to start fresh
 
 # Noteworthy configurations
-The following is set in the lifecycle for the VCL service resource.
+The following is set in the lifecycle for the VCL service resource to avoid any conflicts with product enablement.
 
 ```
   lifecycle {
@@ -31,6 +29,7 @@ The following is set in the lifecycle for the VCL service resource.
   }
 ```
 
+The dynamic snippets are set with `managed = false` so that the initial implementation creates a placeholder for these snippets. Fastly is then updating the snippets when a revised integration is created or the `sigsci_edge_deployment_service` resource is applied.
 
 # Want some new functionality or have questions?
 Reach out Max Anderson, Guy Brown, or Brooks Cunningham on the TSG team.
