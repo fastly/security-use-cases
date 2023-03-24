@@ -1,7 +1,5 @@
-# security-use-cases
-As much fun as clicking and typing are, how about we give our weary hands a break and let Terraform do the work? This repository exists to make life easier by providing proven and standardized configuration that are easy to deploy.
-
-<!-- Much inspiration from [10 Pro Tips for Getting the Most out of your Next-Gen WAF](https://www.fastly.com/blog/10-pro-tips-for-getting-the-most-out-of-your-next-gen-waf) -->
+# NextGen WAF Edge Deployment Quick Start
+This repository allows you to quickly deploy a the NextGen WAF Edge integration using Terraform.
 
 # What's been implemented so far?
 ## Gold Standard Starter
@@ -10,7 +8,10 @@ As much fun as clicking and typing are, how about we give our weary hands a brea
 # Pre-requisites
 * [Clone this repo](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository)
 * [Install terraform](https://developer.hashicorp.com/terraform/downloads)
-* [Create an NGWAF API Key](https://docs.fastly.com/signalsciences/developer/using-our-api/#about-api-access-tokens)
+* [Create an NextGen WAF API Key](https://docs.fastly.com/signalsciences/developer/using-our-api/#about-api-access-tokens)
+* [Create a Fastly Delivery API Key](some_link)
+* [Create a NextGen WAF Corp](some_link)
+* [Create a NextGen WAF Site](some_link)
 
 # New to Terraform?
 Check out [Terraform for beginners](https://geekflare.com/terraform-for-beginners/)
