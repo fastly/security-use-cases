@@ -12,7 +12,7 @@ This terraform implementation will allow you to quickly spin up a VCL service wi
 # New to Terraform?
 Check out [Terraform for beginners](https://geekflare.com/terraform-for-beginners/)
 
-Steps
+# Quick start steps
 * Update `VCL_SERVICE_DOMAIN_NAME` in variables.tf with your own custom domain name.
 * run `terraform apply` or `terraform apply -auto-approve`
 * Enjoy!
