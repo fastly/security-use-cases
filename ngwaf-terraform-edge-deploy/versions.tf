@@ -8,6 +8,7 @@ terraform {
     }
     sigsci = {
       source = "signalsciences/sigsci"
+      version = ">= 1.2.15"
     }
   }
 }

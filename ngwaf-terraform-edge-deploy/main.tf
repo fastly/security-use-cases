@@ -21,20 +21,30 @@ resource "fastly_service_vcl" "frontend-vcl-service" {
     override_host = var.USER_VCL_SERVICE_BACKEND_HOSTNAME
   }
 
-#   #### Only disable caching for testing. Do not disable caching for production traffic.
+  #### Adds the necessary header to enable response headers from the NGWAF edge deployment, which may then be used for logging. 
+  # Also, removes the sensitive response headers before delivering the response to the client
+  
   snippet {
-    name = "Disable caching"
-    content = file("${path.module}/vcl/disable_caching.vcl")
-    type = "recv"
+    name = "Add and remove ngwaf log headers"
+    content = file("${path.module}/vcl/add_and_remove_ngwaf_log_headers.vcl")
+    type = "init"
     priority = 100
   }
 
-  snippet {
-    name = "Debug headers"
-    content = file("${path.module}/vcl/debug_headers.vcl")
-    type = "fetch"
-    priority = 110
-  }
+  #### Only disable caching for testing. Do not disable caching for production traffic.
+  # snippet {
+  #   name = "Disable caching"
+  #   content = file("${path.module}/vcl/disable_caching.vcl")
+  #   type = "recv"
+  #   priority = 100
+  # }
+
+  # snippet {
+  #   name = "Debug headers"
+  #   content = file("${path.module}/vcl/debug_headers.vcl")
+  #   type = "fetch"
+  #   priority = 110
+  # }
 
   #### NGWAF Dynamic Snippets - MANAGED BY FASTLY - Start
   dynamicsnippet {
@@ -58,10 +68,15 @@ resource "fastly_service_vcl" "frontend-vcl-service" {
     name       = var.Edge_Security_dictionary
   }
 
+  logging_honeycomb {
+    dataset = "NGWAF_EDGE_DATASET"
+    name = "NGWAF_EDGE_LOGS"
+    token = var.HONEYCOMB_API_KEY
+    format = file("${path.module}/ngwaf_logging_format.json")
+  }
+
   lifecycle {
     ignore_changes = [
-      # dictionary,
-      # dynamicsnippet,
       product_enablement,
     ]
   }
@@ -140,10 +155,23 @@ resource "sigsci_edge_deployment_service" "ngwaf_edge_service_link" {
   # https://registry.terraform.io/providers/signalsciences/sigsci/latest/docs/resources/edge_deployment_service
   site_short_name = var.NGWAF_SITE
   fastly_sid      = fastly_service_vcl.frontend-vcl-service.id
+
+  activate_version = true
+  percent_enabled = 100
+
+  depends_on = [
+    sigsci_edge_deployment.ngwaf_edge_site_service
+  ]
 }
 
 #### Edge deploy and sync - End
 
 output "live_laugh_love_ngwaf" {
-  value = "curl -i https://${var.USER_VCL_SERVICE_DOMAIN_NAME}/anything/whydopirates?likeurls=theargs"
+  value = "\n  curl -i \u0022https://${var.USER_VCL_SERVICE_DOMAIN_NAME}/anything/whydopirates?likeurls=theargs\u0022 \n"
+  description = "Send a request to test the deployment."
+}
+
+output "troubleshooting_logging" {
+  value = "\n curl https://api.fastly.com/service/${fastly_service_vcl.frontend-vcl-service.id}/logging_status -H fastly-key:$FASTLY_API_KEY \n"
+  description = "Troubleshoot the logging configuration if necessary."
 }

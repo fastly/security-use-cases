@@ -46,3 +46,12 @@ variable "NGWAF_TOKEN" {
     sensitive   = true
 }
 #### NGWAF variables - End
+
+#### External Logging - Start
+variable "HONEYCOMB_API_KEY" {
+  # https://www.honeycomb.io/
+    type        = string
+    description = "Secret token for the Honeycomb API."
+    sensitive   = true
+}
+#### External Logging - END
