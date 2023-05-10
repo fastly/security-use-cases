@@ -1,4 +1,4 @@
-# Try to follow best practices here, https://www.terraform-best-practices.com/code-structure
+# Try to follow recommended practices here, https://developer.hashicorp.com/terraform/cloud-docs/recommended-practices
 
 #### Supply NGWAF API authentication - Start
 # environment variables must be available using "TF_VAR_*" in your terminal. 
@@ -9,6 +9,14 @@ provider "sigsci" {
   auth_token  = var.NGWAF_TOKEN
 }
 #### Supply NGWAF API authentication - End
+
+# resource "sigsci_site" "tenant_site" {
+#   short_name = var.NGWAF_SITE
+#   display_name = var.NGWAF_SITE
+#   block_duration_seconds = 86400
+#   agent_anon_mode = ""
+#   agent_level = "log"
+# }
 
 #### Block Any Attack Signal from Attack Sources - Start
 resource "sigsci_corp_list" "system-attack-signals-list" {

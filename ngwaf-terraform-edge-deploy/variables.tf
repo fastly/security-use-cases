@@ -8,13 +8,15 @@ variable "FASTLY_API_KEY" {
 variable "USER_VCL_SERVICE_DOMAIN_NAME" {
   type = string
   description = "Frontend domain for your service."
-  default = "frontend-tf-demo.global.ssl.fastly.net"
+  default = "ngwaf-tf-demo.global.ssl.fastly.net"
 }
 
 variable "USER_VCL_SERVICE_BACKEND_HOSTNAME" {
   type          = string
   description   = "hostname used for backend."
   default       = "http-me.glitch.me"
+  # default = "status.demotool.site"
+  # default = "return-status.demotool.site"
 }
 
 # Controls the percentage of traffic sent to NGWAF

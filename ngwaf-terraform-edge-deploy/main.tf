@@ -25,25 +25,26 @@ resource "fastly_service_vcl" "frontend-vcl-service" {
   # Also, removes the sensitive response headers before delivering the response to the client
   
   snippet {
-    name = "Add and remove ngwaf log headers"
-    content = file("${path.module}/vcl/add_and_remove_ngwaf_log_headers.vcl")
-    type = "init"
-    priority = 100
+    name = "Add ngwaf log headers"
+    content = file("${path.module}/vcl/add_ngwaf_log_headers.vcl")
+    type = "recv"
+    priority = 110
   }
 
   #### Only disable caching for testing. Do not disable caching for production traffic.
-  # snippet {
-  #   name = "Disable caching"
-  #   content = file("${path.module}/vcl/disable_caching.vcl")
-  #   type = "recv"
-  #   priority = 100
-  # }
+  snippet {
+    name = "Disable caching"
+    content = file("${path.module}/vcl/disable_caching.vcl")
+    type = "recv"
+    priority = 100
+  }
 
+  #### Useful for debugging with response headers
   # snippet {
   #   name = "Debug headers"
   #   content = file("${path.module}/vcl/debug_headers.vcl")
   #   type = "fetch"
-  #   priority = 110
+  #   priority = 120
   # }
 
   #### NGWAF Dynamic Snippets - MANAGED BY FASTLY - Start
@@ -60,6 +61,11 @@ resource "fastly_service_vcl" "frontend-vcl-service" {
   dynamicsnippet {
     name     = "ngwaf_config_pass"
     type     = "pass"
+    priority = 9000
+  }
+  dynamicsnippet {
+    name     = "ngwaf_config_deliver"
+    type     = "deliver"
     priority = 9000
   }
   #### NGWAF Dynamic Snippets - MANAGED BY FASTLY - End
@@ -135,9 +141,20 @@ resource "fastly_service_dynamic_snippet_content" "ngwaf_config_pass" {
   manage_snippets = false
 }
 
+# resource "fastly_service_dynamic_snippet_content" "ngwaf_config_deliver" {
+#   for_each = {
+#   for d in fastly_service_vcl.frontend-vcl-service.dynamicsnippet : d.name => d if d.name == "ngwaf_config_deliver"
+#   }
+
+#   service_id = fastly_service_vcl.frontend-vcl-service.id
+#   snippet_id = each.value.snippet_id
+
+#   content = "### Fastly managed ngwaf_config_deliver"
+
+#   manage_snippets = false
+# }
 
 #### Fastly VCL Service - End
-
 
 provider "sigsci" {
   corp = var.NGWAF_CORP
@@ -149,6 +166,9 @@ provider "sigsci" {
 resource "sigsci_edge_deployment" "ngwaf_edge_site_service" {
   # https://registry.terraform.io/providers/signalsciences/sigsci/latest/docs/resources/edge_deployment
   site_short_name = var.NGWAF_SITE
+    provisioner "local-exec" {
+      command = "echo 'Sleep for 80 seconds'; sleep 80"
+  }
 }
 
 resource "sigsci_edge_deployment_service" "ngwaf_edge_service_link" {
@@ -160,18 +180,49 @@ resource "sigsci_edge_deployment_service" "ngwaf_edge_service_link" {
   percent_enabled = 100
 
   depends_on = [
-    sigsci_edge_deployment.ngwaf_edge_site_service
+    sigsci_edge_deployment.ngwaf_edge_site_service,
+    fastly_service_vcl.frontend-vcl-service,
   ]
 }
+
+# resource "sigsci_edge_deployment_service_backend" "ngwaf_edge_service_backend_sync" {
+#   site_short_name = var.NGWAF_SITE
+#   fastly_sid      = fastly_service_vcl.frontend-vcl-service.id
+
+#   fastly_service_vcl_active_version = fastly_service_vcl.frontend-vcl-service.active_version
+
+#   depends_on = [
+#     sigsci_edge_deployment_service.ngwaf_edge_service_link,
+#   ]
+# }
 
 #### Edge deploy and sync - End
 
 output "live_laugh_love_ngwaf" {
-  value = "\n  curl -i \u0022https://${var.USER_VCL_SERVICE_DOMAIN_NAME}/anything/whydopirates?likeurls=theargs\u0022 \n"
-  description = "Send a request to test the deployment."
-}
+  value = <<tfmultiline
+  
+  #### Click the URL to go to the Fastly VCL service ####
+  https://cfg.fastly.com/${fastly_service_vcl.frontend-vcl-service.id}
 
-output "troubleshooting_logging" {
-  value = "\n curl https://api.fastly.com/service/${fastly_service_vcl.frontend-vcl-service.id}/logging_status -H fastly-key:$FASTLY_API_KEY \n"
-  description = "Troubleshoot the logging configuration if necessary."
+  #### Click the URL to go to the Fastly NGWAF service ####
+  https://dashboard.signalsciences.net/corps/${var.NGWAF_CORP}/sites/${var.NGWAF_SITE}
+  
+  #### Send a test request with curl. ####
+  curl -i "https://${var.USER_VCL_SERVICE_DOMAIN_NAME}/anything/whydopirates?likeurls=theargs" -d foo=bar
+
+  #### Send an test as traversal with curl. ####
+  curl -i "https://${var.USER_VCL_SERVICE_DOMAIN_NAME}/anything/myattackreq?i=../../../../etc/passwd'" -d foo=bar
+
+
+  #### Troubleshoot the logging configuration if necessary. ####
+  https://docs.fastly.com/en/guides/setting-up-remote-log-streaming#troubleshooting-common-logging-errors
+  curl https://api.fastly.com/service/${fastly_service_vcl.frontend-vcl-service.id}/logging_status -H fastly-key:$FASTLY_API_KEY
+  
+  tfmultiline
+
+  description = "Output hints on what to do next."
+
+  depends_on = [
+    sigsci_edge_deployment_service.ngwaf_edge_service_link
+  ]
 }
