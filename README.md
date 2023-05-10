@@ -5,6 +5,9 @@ This repository allows you to quickly deploy a the NextGen WAF Edge integration 
 ## Gold Standard Starter
 [Quick start your Fastly NextGen WAF implementations](https://github.com/fastly/security-use-cases/tree/main/gold-standard-starter)
 
+## NGWAF Edge Deployment
+[How to Deploy Fastly’s Next-Gen WAF in less than 10 minutes](https://www.fastly.com/blog/how-to-deploy-fastlys-next-gen-waf-in-less-than-10-minutes)
+
 # Pre-requisites
 * [Clone this repo](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository)
 * [Install terraform](https://developer.hashicorp.com/terraform/downloads)
