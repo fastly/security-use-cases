@@ -9,8 +9,6 @@ terraform {
     sigsci = {
       source = "signalsciences/sigsci"
       version = ">= 1.2.18"
-      # source = "terraform.local/local/sigsci"
-      # version = ">= 3.0.4"
     }
   }
 }
