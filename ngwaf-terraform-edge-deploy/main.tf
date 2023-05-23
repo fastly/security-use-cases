@@ -185,16 +185,16 @@ resource "sigsci_edge_deployment_service" "ngwaf_edge_service_link" {
   ]
 }
 
-# resource "sigsci_edge_deployment_service_backend" "ngwaf_edge_service_backend_sync" {
-#   site_short_name = var.NGWAF_SITE
-#   fastly_sid      = fastly_service_vcl.frontend-vcl-service.id
+resource "sigsci_edge_deployment_service_backend" "ngwaf_edge_service_backend_sync" {
+  site_short_name = var.NGWAF_SITE
+  fastly_sid      = fastly_service_vcl.frontend-vcl-service.id
 
-#   fastly_service_vcl_active_version = fastly_service_vcl.frontend-vcl-service.active_version
+  fastly_service_vcl_active_version = fastly_service_vcl.frontend-vcl-service.active_version
 
-#   depends_on = [
-#     sigsci_edge_deployment_service.ngwaf_edge_service_link,
-#   ]
-# }
+  depends_on = [
+    sigsci_edge_deployment_service.ngwaf_edge_service_link,
+  ]
+}
 
 #### Edge deploy and sync - End
 
