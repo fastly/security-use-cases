@@ -25,6 +25,10 @@ variable "Edge_Security_dictionary" {
   default = "Edge_Security"
 }
 
+#### VCL Service variables - End
+
+#### NGWAF variables - Start
+
 variable "NGWAF_CORP" {
   type          = string
   description   = "Corp name for NGWAF"
@@ -35,9 +39,6 @@ variable "NGWAF_SITE" {
   description   = "Site name for NGWAF"
 }
 
-#### VCL Service variables - End
-
-#### NGWAF variables - Start
 variable "NGWAF_EMAIL" {
     type        = string
     description = "Email address associated with the token for the NGWAF API."
@@ -55,5 +56,23 @@ variable "HONEYCOMB_API_KEY" {
     type        = string
     description = "Secret token for the Honeycomb API."
     sensitive   = true
+    default = ""
+}
+
+# Splunk
+variable "SPLUNK_LOGGING_NAME" {
+  type = string
+  default = "SPLUNK_LOGGING"
+}
+
+variable "SPLUNK_LOGGING_TOKEN" {
+  type = string
+  sensitive = true
+  default = ""
+}
+
+variable "SPLUNK_LOGGING_URL" {
+  type = string
+  default = ""
 }
 #### External Logging - END

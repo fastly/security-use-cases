@@ -32,12 +32,12 @@ resource "fastly_service_vcl" "frontend-vcl-service" {
   }
 
   #### Only disable caching for testing. Do not disable caching for production traffic.
-  snippet {
-    name = "Disable caching"
-    content = file("${path.module}/vcl/disable_caching.vcl")
-    type = "recv"
-    priority = 100
-  }
+  # snippet {
+  #   name = "Disable caching"
+  #   content = file("${path.module}/vcl/disable_caching.vcl")
+  #   type = "recv"
+  #   priority = 220
+  # }
 
   #### Useful for debugging with response headers
   # snippet {
@@ -74,12 +74,23 @@ resource "fastly_service_vcl" "frontend-vcl-service" {
     name       = var.Edge_Security_dictionary
   }
 
-  logging_honeycomb {
-    dataset = "NGWAF_EDGE_DATASET"
-    name = "NGWAF_EDGE_LOGS"
-    token = var.HONEYCOMB_API_KEY
-    format = file("${path.module}/ngwaf_logging_format.json")
-  }
+
+  # logging_honeycomb {
+  #   dataset = "NGWAF_EDGE_DATASET"
+  #   name = "NGWAF_EDGE_LOGS"
+  #   token = var.HONEYCOMB_API_KEY
+  #   format = file("${path.module}/ngwaf_honeycomb_logging_format.json")
+  # }
+
+  # logging_splunk {
+  #   name  = var.SPLUNK_LOGGING_NAME
+  #   token = var.SPLUNK_LOGGING_TOKEN
+  #   url   = var.SPLUNK_LOGGING_URL
+  #   format_version = 2
+  #   format = file("${path.module}/ngwaf_splunk_logging_format.json")
+  #   tls_ca_cert = file("${path.module}/splunk_ca_cert.pem")
+  #   use_tls = true
+  # }
 
   lifecycle {
     ignore_changes = [
@@ -141,18 +152,18 @@ resource "fastly_service_dynamic_snippet_content" "ngwaf_config_pass" {
   manage_snippets = false
 }
 
-# resource "fastly_service_dynamic_snippet_content" "ngwaf_config_deliver" {
-#   for_each = {
-#   for d in fastly_service_vcl.frontend-vcl-service.dynamicsnippet : d.name => d if d.name == "ngwaf_config_deliver"
-#   }
+resource "fastly_service_dynamic_snippet_content" "ngwaf_config_deliver" {
+  for_each = {
+  for d in fastly_service_vcl.frontend-vcl-service.dynamicsnippet : d.name => d if d.name == "ngwaf_config_deliver"
+  }
 
-#   service_id = fastly_service_vcl.frontend-vcl-service.id
-#   snippet_id = each.value.snippet_id
+  service_id = fastly_service_vcl.frontend-vcl-service.id
+  snippet_id = each.value.snippet_id
 
-#   content = "### Fastly managed ngwaf_config_deliver"
+  content = "### Fastly managed ngwaf_config_deliver"
 
-#   manage_snippets = false
-# }
+  manage_snippets = false
+}
 
 #### Fastly VCL Service - End
 
@@ -211,7 +222,7 @@ output "live_laugh_love_ngwaf" {
   curl -i "https://${var.USER_VCL_SERVICE_DOMAIN_NAME}/anything/whydopirates?likeurls=theargs" -d foo=bar
 
   #### Send an test as traversal with curl. ####
-  curl -i "https://${var.USER_VCL_SERVICE_DOMAIN_NAME}/anything/myattackreq?i=../../../../etc/passwd'" -d foo=bar
+  curl -i "https://${var.USER_VCL_SERVICE_DOMAIN_NAME}/anything/myattackreq?i=../../../../etc/passwd" -d foo=bar
 
 
   #### Troubleshoot the logging configuration if necessary. ####
