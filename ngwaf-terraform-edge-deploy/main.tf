@@ -5,7 +5,7 @@ provider "fastly" {
 
 #### Fastly VCL Service - Start
 resource "fastly_service_vcl" "frontend-vcl-service" {
-  name = "Frontend VCL Service - NGWAF edge deploy"
+  name = "Frontend VCL Service - NGWAF edge deploy ${var.USER_VCL_SERVICE_DOMAIN_NAME}"
 
   domain {
     name    = var.USER_VCL_SERVICE_DOMAIN_NAME
@@ -171,7 +171,7 @@ provider "sigsci" {
   corp = var.NGWAF_CORP
   email = var.NGWAF_EMAIL
   auth_token = var.NGWAF_TOKEN
-  fastly_key = var.FASTLY_API_KEY
+  fastly_api_key = var.FASTLY_API_KEY
 }
 
 resource "sigsci_edge_deployment" "ngwaf_edge_site_service" {
