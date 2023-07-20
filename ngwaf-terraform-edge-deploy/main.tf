@@ -90,8 +90,71 @@ resource "fastly_service_vcl" "frontend-vcl-service" {
   #   tls_ca_cert = file("${path.module}/splunk_ca_cert.pem")
   #   use_tls = true
   # }
-
+  
   force_destroy = true
+}
+
+resource "fastly_service_dictionary_items" "edge_security_dictionary_items" {
+  for_each = {
+    for d in fastly_service_vcl.frontend-vcl-service.dictionary : d.name => d if d.name == var.Edge_Security_dictionary
+  }
+  service_id = fastly_service_vcl.frontend-vcl-service.id
+  dictionary_id = each.value.dictionary_id
+  items = {
+    Enabled: "100"
+  }
+}
+
+resource "fastly_service_dynamic_snippet_content" "ngwaf_config_init" {
+  for_each = {
+  for d in fastly_service_vcl.frontend-vcl-service.dynamicsnippet : d.name => d if d.name == "ngwaf_config_init"
+  }
+
+  service_id = fastly_service_vcl.frontend-vcl-service.id
+  snippet_id = each.value.snippet_id
+
+  content = "### Fastly managed ngwaf_config_init"
+  
+  manage_snippets = false
+}
+
+resource "fastly_service_dynamic_snippet_content" "ngwaf_config_miss" {
+  for_each = {
+  for d in fastly_service_vcl.frontend-vcl-service.dynamicsnippet : d.name => d if d.name == "ngwaf_config_miss"
+  }
+
+  service_id = fastly_service_vcl.frontend-vcl-service.id
+  snippet_id = each.value.snippet_id
+
+  content = "### Fastly managed ngwaf_config_miss"
+
+  manage_snippets = false
+}
+
+resource "fastly_service_dynamic_snippet_content" "ngwaf_config_pass" {
+  for_each = {
+  for d in fastly_service_vcl.frontend-vcl-service.dynamicsnippet : d.name => d if d.name == "ngwaf_config_pass"
+  }
+
+  service_id = fastly_service_vcl.frontend-vcl-service.id
+  snippet_id = each.value.snippet_id
+
+  content = "### Fastly managed ngwaf_config_pass"
+
+  manage_snippets = false
+}
+
+resource "fastly_service_dynamic_snippet_content" "ngwaf_config_deliver" {
+  for_each = {
+  for d in fastly_service_vcl.frontend-vcl-service.dynamicsnippet : d.name => d if d.name == "ngwaf_config_deliver"
+  }
+
+  service_id = fastly_service_vcl.frontend-vcl-service.id
+  snippet_id = each.value.snippet_id
+
+  content = "### Fastly managed ngwaf_config_deliver"
+
+  manage_snippets = false
 }
 
 #### Fastly VCL Service - End
@@ -119,6 +182,11 @@ resource "sigsci_edge_deployment_service" "ngwaf_edge_service_link" {
   depends_on = [
     sigsci_edge_deployment.ngwaf_edge_site_service,
     fastly_service_vcl.frontend-vcl-service,
+    fastly_service_dictionary_items.edge_security_dictionary_items,
+    fastly_service_dynamic_snippet_content.ngwaf_config_init,
+    fastly_service_dynamic_snippet_content.ngwaf_config_miss,
+    fastly_service_dynamic_snippet_content.ngwaf_config_pass,
+    fastly_service_dynamic_snippet_content.ngwaf_config_deliver,
   ]
 }
 
