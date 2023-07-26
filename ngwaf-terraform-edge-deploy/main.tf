@@ -74,7 +74,6 @@ resource "fastly_service_vcl" "frontend-vcl-service" {
     name       = var.Edge_Security_dictionary
   }
 
-
   # logging_honeycomb {
   #   dataset = "NGWAF_EDGE_DATASET"
   #   name = "NGWAF_EDGE_LOGS"
@@ -91,23 +90,16 @@ resource "fastly_service_vcl" "frontend-vcl-service" {
   #   tls_ca_cert = file("${path.module}/splunk_ca_cert.pem")
   #   use_tls = true
   # }
-
-  lifecycle {
-    ignore_changes = [
-      product_enablement,
-    ]
-  }
-
+  
   force_destroy = true
 }
 
 resource "fastly_service_dictionary_items" "edge_security_dictionary_items" {
   for_each = {
-  for d in fastly_service_vcl.frontend-vcl-service.dictionary : d.name => d if d.name == var.Edge_Security_dictionary
+    for d in fastly_service_vcl.frontend-vcl-service.dictionary : d.name => d if d.name == var.Edge_Security_dictionary
   }
   service_id = fastly_service_vcl.frontend-vcl-service.id
   dictionary_id = each.value.dictionary_id
-
   items = {
     Enabled: "100"
   }
@@ -177,9 +169,6 @@ provider "sigsci" {
 resource "sigsci_edge_deployment" "ngwaf_edge_site_service" {
   # https://registry.terraform.io/providers/signalsciences/sigsci/latest/docs/resources/edge_deployment
   site_short_name = var.NGWAF_SITE
-    provisioner "local-exec" {
-      command = "echo 'Sleep for 100 seconds'; sleep 100"
-  }
 }
 
 resource "sigsci_edge_deployment_service" "ngwaf_edge_service_link" {
@@ -193,6 +182,11 @@ resource "sigsci_edge_deployment_service" "ngwaf_edge_service_link" {
   depends_on = [
     sigsci_edge_deployment.ngwaf_edge_site_service,
     fastly_service_vcl.frontend-vcl-service,
+    fastly_service_dictionary_items.edge_security_dictionary_items,
+    fastly_service_dynamic_snippet_content.ngwaf_config_init,
+    fastly_service_dynamic_snippet_content.ngwaf_config_miss,
+    fastly_service_dynamic_snippet_content.ngwaf_config_pass,
+    fastly_service_dynamic_snippet_content.ngwaf_config_deliver,
   ]
 }
 
