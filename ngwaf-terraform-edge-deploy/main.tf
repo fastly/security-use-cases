@@ -218,6 +218,8 @@ output "live_laugh_love_ngwaf" {
   #### Send an test as traversal with curl. ####
   curl -i "https://${var.USER_VCL_SERVICE_DOMAIN_NAME}/anything/myattackreq?i=../../../../etc/passwd" -d foo=bar
 
+  #### Send an test as XSS with curl. ####
+  curl -i "https://${var.USER_VCL_SERVICE_DOMAIN_NAME}/anything/myattackreq?foo=%3Cscript%3E" -d foo=bar
 
   #### Troubleshoot the logging configuration if necessary. ####
   https://docs.fastly.com/en/guides/setting-up-remote-log-streaming#troubleshooting-common-logging-errors
