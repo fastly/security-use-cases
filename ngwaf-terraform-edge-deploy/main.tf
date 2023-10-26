@@ -31,6 +31,14 @@ resource "fastly_service_vcl" "frontend-vcl-service" {
     priority = 110
   }
 
+  # https://www.fastly.com/blog/stronger-security-with-a-unified-cdn-and-waf  
+  snippet {
+    name = "cdn enrichment"
+    content = file("${path.module}/vcl/cdn_enrichment.vcl")
+    type = "recv"
+    priority = 120
+  }
+
   #### Only disable caching for testing. Do not disable caching for production traffic.
   # snippet {
   #   name = "Disable caching"
