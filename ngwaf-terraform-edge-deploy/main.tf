@@ -39,6 +39,13 @@ resource "fastly_service_vcl" "frontend-vcl-service" {
     priority = 120
   }
 
+  snippet {
+    name = "erl enrichment"
+    content = file("${path.module}/vcl/erl_enrichment.vcl")
+    type = "init"
+    priority = 100
+  }
+
   #### Only disable caching for testing. Do not disable caching for production traffic.
   # snippet {
   #   name = "Disable caching"
