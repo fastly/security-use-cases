@@ -1,3 +1,5 @@
+[![CI](https://github.com/fastly/security-use-cases/actions/workflows/github-action.yml/badge.svg)](https://github.com/fastly/security-use-cases/actions/workflows/github-action.yml)
+
 # NextGen WAF Edge Deployment Quick Start
 This repository allows you to quickly deploy a the NextGen WAF Edge integration using Terraform.
 
