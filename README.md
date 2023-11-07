@@ -22,5 +22,5 @@ This repository allows you to quickly deploy a the NextGen WAF Edge integration 
 Check out [Terraform for beginners](https://geekflare.com/terraform-for-beginners/)
 
 # Want some new functionality or have questions?
-Reach out Max Anderson, Guy Brown, or Brooks Cunningham on the TSG team.
+Reach out to the contributors of this repo.
 

@@ -1,5 +1,4 @@
-# Add rules from https://www.fastly.com/blog/stronger-security-with-a-unified-cdn-and-waf
-
+#### Add rules from https://www.fastly.com/blog/stronger-security-with-a-unified-cdn-and-waf
 
 # Using JA3 signatures and ASNs
 resource "sigsci_corp_list" "malicious-ja3s-list" {
