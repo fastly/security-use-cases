@@ -218,7 +218,7 @@ resource "sigsci_edge_deployment_service_backend" "ngwaf_edge_service_backend_sy
 
 #### Edge deploy and sync - End
 
-output "live_laugh_love_ngwaf" {
+output "live_waf_love_output" {
   value = <<tfmultiline
   
   #### Click the URL to go to the Fastly VCL service ####

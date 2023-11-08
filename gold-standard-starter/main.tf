@@ -349,7 +349,7 @@ resource "sigsci_site_rule" "enumeration-attack-rule" {
 #### Rate Limiting Enumeration Attempts - End
 
 
-output "live_waf_live_output" {
+output "live_waf_love_output" {
   value = <<tfmultiline
 
   #### Click the URL to go to the Fastly NGWAF service ####
