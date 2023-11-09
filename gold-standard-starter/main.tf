@@ -4,9 +4,9 @@
 # environment variables must be available using "TF_VAR_*" in your terminal. 
 # For example, `echo $TF_VAR_NGWAF_CORP` should return your intended corp.
 provider "sigsci" {
-  corp        = var.NGWAF_CORP
-  email       = var.NGWAF_EMAIL
-  auth_token  = var.NGWAF_TOKEN
+  corp       = var.NGWAF_CORP
+  email      = var.NGWAF_EMAIL
+  auth_token = var.NGWAF_TOKEN
 }
 #### Supply NGWAF API authentication - End
 
@@ -50,19 +50,19 @@ resource "sigsci_corp_signal_tag" "malicious-attacker-signal" {
 
 resource "sigsci_corp_rule" "malicious-attacker-rule" {
   site_short_names = []
-  type            = "request"
-  corp_scope      = "global"
-  group_operator  = "all"
-  enabled         = true
-  reason          = "Detect attacks from known attacking IPs"
-  expiration      = ""
+  type             = "request"
+  corp_scope       = "global"
+  group_operator   = "all"
+  enabled          = true
+  reason           = "Detect attacks from known attacking IPs"
+  expiration       = ""
 
 
   conditions {
-    type     = "multival"
-    field    = "signal"
+    type           = "multival"
+    field          = "signal"
     group_operator = "all"
-    operator = "exists"
+    operator       = "exists"
 
     conditions {
       type     = "single"
@@ -81,8 +81,8 @@ resource "sigsci_corp_rule" "malicious-attacker-rule" {
   # actions {
   #   type = "block"
   # }
-    actions {
-    type = "addSignal"
+  actions {
+    type   = "addSignal"
     signal = sigsci_corp_signal_tag.malicious-attacker-signal.id
   }
 
@@ -106,34 +106,34 @@ resource "sigsci_corp_list" "blocked-countries-corp-list" {
   name = "blocked-countries"
   type = "country"
   entries = [
-      "KP",
+    "KP",
   ]
   description = "Block countries that are not revenue generating. KP is North Korea."
 }
 
 resource "sigsci_corp_rule" "blocked-countries-corp-rule" {
   site_short_names = []
-  type = "request"
-  corp_scope = "global"
-  enabled = true
-  group_operator = "all"
-  reason = "Country Blocking Rule"
-  expiration = ""
+  type             = "request"
+  corp_scope       = "global"
+  enabled          = true
+  group_operator   = "all"
+  reason           = "Country Blocking Rule"
+  expiration       = ""
 
   conditions {
     type     = "single"
     field    = "country"
     operator = "inList"
-    value = sigsci_corp_list.blocked-countries-corp-list.id
+    value    = sigsci_corp_list.blocked-countries-corp-list.id
   }
-  
+
   # Easily go into blocking by uncommenting the following action
   # actions {
   #   type = "block"
   # }
 
   actions {
-    type = "addSignal"
+    type   = "addSignal"
     signal = sigsci_corp_signal_tag.blocked-countries-corp-signal.id
   }
 
@@ -154,32 +154,32 @@ resource "sigsci_corp_signal_tag" "system-attack-signal" {
 
 resource "sigsci_corp_rule" "system-attack-rule" {
   site_short_names = []
-  type            = "request"
-  corp_scope      = "global"
-  group_operator  = "all"
-  enabled         = true
-  reason          = "Add a signal for any attack"
-  expiration      = ""
+  type             = "request"
+  corp_scope       = "global"
+  group_operator   = "all"
+  enabled          = true
+  reason           = "Add a signal for any attack"
+  expiration       = ""
 
   conditions {
-    type     = "multival"
-    field    = "signal"
+    type           = "multival"
+    field          = "signal"
     group_operator = "all"
-    operator = "exists"
+    operator       = "exists"
 
     conditions {
       type     = "single"
       field    = "signalType"
       operator = "inList"
-      value = sigsci_corp_list.system-attack-signals-list.id
+      value    = sigsci_corp_list.system-attack-signals-list.id
     }
   }
   #### Easily go into blocking by uncommenting the following action
   # actions {
   #   type = "block"
   # }
-    actions {
-    type = "addSignal"
+  actions {
+    type   = "addSignal"
     signal = sigsci_corp_signal_tag.system-attack-signal.id
   }
   depends_on = [
@@ -243,44 +243,44 @@ resource "sigsci_corp_signal_tag" "anomaly-attack-signal" {
 }
 
 resource "sigsci_corp_list" "anomaly-attack-signals-list" {
-    name = "anomaly-attack-signals"
-    type = "signal"
-    entries = [
-      "ABNORMALPATH",
-      "CODEINJECTION",
-      "DOUBLEENCODING",
-      "DUPLICATE-HEADERS",
-      "NOTUTF8",
-      "MALFORMED-DATA",
-      "NOUA",
-      "PRIVATEFILE",
-      "RESPONSESPLIT",
-    ]
+  name = "anomaly-attack-signals"
+  type = "signal"
+  entries = [
+    "ABNORMALPATH",
+    "CODEINJECTION",
+    "DOUBLEENCODING",
+    "DUPLICATE-HEADERS",
+    "NOTUTF8",
+    "MALFORMED-DATA",
+    "NOUA",
+    "PRIVATEFILE",
+    "RESPONSESPLIT",
+  ]
 }
 
 resource "sigsci_corp_rule" "anomaly-attack-corp-rule" {
   site_short_names = []
-  type            = "request"
-  corp_scope      = "global"
-  group_operator  = "all"
-  enabled         = true
-  reason          = "Identify attacks from Anomaly Traffic"
-  expiration      = ""
+  type             = "request"
+  corp_scope       = "global"
+  group_operator   = "all"
+  enabled          = true
+  reason           = "Identify attacks from Anomaly Traffic"
+  expiration       = ""
   conditions {
-    type     = "multival"
-    field    = "signal"
+    type           = "multival"
+    field          = "signal"
     group_operator = "all"
-    operator = "exists"
+    operator       = "exists"
 
     conditions {
       type     = "single"
       field    = "signalType"
       operator = "inList"
-      value = sigsci_corp_list.anomaly-attack-signals-list.id
+      value    = sigsci_corp_list.anomaly-attack-signals-list.id
     }
   }
   actions {
-    type = "addSignal"
+    type   = "addSignal"
     signal = sigsci_corp_signal_tag.anomaly-attack-signal.id
   }
   #### Easily go into blocking by uncommenting the following action
@@ -296,9 +296,9 @@ resource "sigsci_corp_rule" "anomaly-attack-corp-rule" {
 
 #### Rate Limiting Enumeration Attempts - Start
 resource "sigsci_site_signal_tag" "bad-response-signal" {
-  site_short_name   = var.NGWAF_SITE
-  name              = "bad-response"
-  description       = "Identification of attacks from malicious IPs"
+  site_short_name = var.NGWAF_SITE
+  name            = "bad-response"
+  description     = "Identification of attacks from malicious IPs"
 
 }
 
@@ -311,16 +311,16 @@ resource "sigsci_site_rule" "enumeration-attack-rule" {
   expiration      = ""
 
   conditions {
-    type      = "single"
-    field     = "responseCode"
-    operator  = "like"
-    value     = "4[0-9][0-9]"
+    type     = "single"
+    field    = "responseCode"
+    operator = "like"
+    value    = "4[0-9][0-9]"
   }
   conditions {
-    type      = "single"
-    field     = "responseCode"
-    operator  = "like"
-    value     = "5[0-9][0-9]"
+    type     = "single"
+    field    = "responseCode"
+    operator = "like"
+    value    = "5[0-9][0-9]"
   }
   # actions {
   #   type          = "blockSignal"
@@ -329,13 +329,13 @@ resource "sigsci_site_rule" "enumeration-attack-rule" {
   # }
 
   actions {
-    type = "logRequest"
+    type   = "logRequest"
     signal = sigsci_site_signal_tag.bad-response-signal.id
   }
 
   rate_limit = {
     threshold = 10,
-    interval  =  1,
+    interval  = 1,
     duration  = 600,
     # clientIdentifiers = "ip" Defaults to IP
   }
@@ -347,3 +347,14 @@ resource "sigsci_site_rule" "enumeration-attack-rule" {
 }
 
 #### Rate Limiting Enumeration Attempts - End
+
+
+output "live_waf_love_output" {
+  value = <<tfmultiline
+
+  #### Click the URL to go to the Fastly NGWAF service ####
+  https://dashboard.signalsciences.net/corps/${var.NGWAF_CORP}/sites/${var.NGWAF_SITE}
+
+  tfmultiline
+  
+}
