@@ -15,14 +15,6 @@ variable "USER_VCL_SERVICE_BACKEND_HOSTNAME" {
   type          = string
   description   = "hostname used for backend."
   default       = "http-me.glitch.me"
-  # default = "status.demotool.site"
-  # default = "return-status.demotool.site"
-}
-
-# Controls the percentage of traffic sent to NGWAF
-variable "Edge_Security_dictionary" {
-  type = string
-  default = "Edge_Security"
 }
 
 #### VCL Service variables - End
