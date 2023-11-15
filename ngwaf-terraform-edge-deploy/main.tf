@@ -86,7 +86,7 @@ resource "fastly_service_vcl" "frontend-vcl-service" {
   #### NGWAF Dynamic Snippets - MANAGED BY FASTLY - End
 
   dictionary {
-    name       = var.Edge_Security_dictionary
+    name       = "Edge_Security"
   }
 
   # logging_honeycomb {
@@ -111,7 +111,7 @@ resource "fastly_service_vcl" "frontend-vcl-service" {
 
 resource "fastly_service_dictionary_items" "edge_security_dictionary_items" {
   for_each = {
-    for d in fastly_service_vcl.frontend-vcl-service.dictionary : d.name => d if d.name == var.Edge_Security_dictionary
+    for d in fastly_service_vcl.frontend-vcl-service.dictionary : d.name => d if d.name == "Edge_Security"
   }
   service_id = fastly_service_vcl.frontend-vcl-service.id
   dictionary_id = each.value.dictionary_id
