@@ -12,37 +12,37 @@ resource "fastly_service_vcl" "frontend-vcl-service" {
     comment = "Frontend VCL Service - NGWAF edge deploy"
   }
   backend {
-    address = var.USER_VCL_SERVICE_BACKEND_HOSTNAME
-    name = "vcl_service_origin"
-    port    = 443
-    use_ssl = true
+    address           = var.USER_VCL_SERVICE_BACKEND_HOSTNAME
+    name              = "vcl_service_origin"
+    port              = 443
+    use_ssl           = true
     ssl_cert_hostname = var.USER_VCL_SERVICE_BACKEND_HOSTNAME
-    ssl_sni_hostname = var.USER_VCL_SERVICE_BACKEND_HOSTNAME
-    override_host = var.USER_VCL_SERVICE_BACKEND_HOSTNAME
+    ssl_sni_hostname  = var.USER_VCL_SERVICE_BACKEND_HOSTNAME
+    override_host     = var.USER_VCL_SERVICE_BACKEND_HOSTNAME
   }
 
   #### Adds the necessary header to enable response headers from the NGWAF edge deployment, which may then be used for logging. 
   # Also, removes the sensitive response headers before delivering the response to the client
-  
+
   snippet {
-    name = "Add ngwaf log headers"
-    content = file("${path.module}/vcl/add_ngwaf_log_headers.vcl")
-    type = "recv"
-    priority = 110
+    name     = "Add ngwaf log headers"
+    content  = file("${path.module}/vcl/add_ngwaf_log_headers.vcl")
+    type     = "recv"
+    priority = 100
   }
 
   # https://www.fastly.com/blog/stronger-security-with-a-unified-cdn-and-waf  
   snippet {
-    name = "cdn enrichment"
-    content = file("${path.module}/vcl/cdn_enrichment.vcl")
-    type = "recv"
-    priority = 120
+    name     = "cdn enrichment"
+    content  = file("${path.module}/vcl/cdn_enrichment.vcl")
+    type     = "recv"
+    priority = 110
   }
 
   snippet {
-    name = "erl enrichment"
-    content = file("${path.module}/vcl/erl_enrichment.vcl")
-    type = "init"
+    name     = "erl enrichment"
+    content  = file("${path.module}/vcl/erl_enrichment.vcl")
+    type     = "init"
     priority = 100
   }
 
@@ -86,7 +86,7 @@ resource "fastly_service_vcl" "frontend-vcl-service" {
   #### NGWAF Dynamic Snippets - MANAGED BY FASTLY - End
 
   dictionary {
-    name       = "Edge_Security"
+    name = "Edge_Security"
   }
 
   # logging_honeycomb {
@@ -105,7 +105,7 @@ resource "fastly_service_vcl" "frontend-vcl-service" {
   #   tls_ca_cert = file("${path.module}/splunk_ca_cert.pem")
   #   use_tls = true
   # }
-  
+
   force_destroy = true
 }
 
@@ -113,29 +113,29 @@ resource "fastly_service_dictionary_items" "edge_security_dictionary_items" {
   for_each = {
     for d in fastly_service_vcl.frontend-vcl-service.dictionary : d.name => d if d.name == "Edge_Security"
   }
-  service_id = fastly_service_vcl.frontend-vcl-service.id
+  service_id    = fastly_service_vcl.frontend-vcl-service.id
   dictionary_id = each.value.dictionary_id
   items = {
-    Enabled: "100"
+    Enabled : "100"
   }
 }
 
 resource "fastly_service_dynamic_snippet_content" "ngwaf_config_init" {
   for_each = {
-  for d in fastly_service_vcl.frontend-vcl-service.dynamicsnippet : d.name => d if d.name == "ngwaf_config_init"
+    for d in fastly_service_vcl.frontend-vcl-service.dynamicsnippet : d.name => d if d.name == "ngwaf_config_init"
   }
 
   service_id = fastly_service_vcl.frontend-vcl-service.id
   snippet_id = each.value.snippet_id
 
   content = "### Fastly managed ngwaf_config_init"
-  
+
   manage_snippets = false
 }
 
 resource "fastly_service_dynamic_snippet_content" "ngwaf_config_miss" {
   for_each = {
-  for d in fastly_service_vcl.frontend-vcl-service.dynamicsnippet : d.name => d if d.name == "ngwaf_config_miss"
+    for d in fastly_service_vcl.frontend-vcl-service.dynamicsnippet : d.name => d if d.name == "ngwaf_config_miss"
   }
 
   service_id = fastly_service_vcl.frontend-vcl-service.id
@@ -148,7 +148,7 @@ resource "fastly_service_dynamic_snippet_content" "ngwaf_config_miss" {
 
 resource "fastly_service_dynamic_snippet_content" "ngwaf_config_pass" {
   for_each = {
-  for d in fastly_service_vcl.frontend-vcl-service.dynamicsnippet : d.name => d if d.name == "ngwaf_config_pass"
+    for d in fastly_service_vcl.frontend-vcl-service.dynamicsnippet : d.name => d if d.name == "ngwaf_config_pass"
   }
 
   service_id = fastly_service_vcl.frontend-vcl-service.id
@@ -161,7 +161,7 @@ resource "fastly_service_dynamic_snippet_content" "ngwaf_config_pass" {
 
 resource "fastly_service_dynamic_snippet_content" "ngwaf_config_deliver" {
   for_each = {
-  for d in fastly_service_vcl.frontend-vcl-service.dynamicsnippet : d.name => d if d.name == "ngwaf_config_deliver"
+    for d in fastly_service_vcl.frontend-vcl-service.dynamicsnippet : d.name => d if d.name == "ngwaf_config_deliver"
   }
 
   service_id = fastly_service_vcl.frontend-vcl-service.id
@@ -175,9 +175,9 @@ resource "fastly_service_dynamic_snippet_content" "ngwaf_config_deliver" {
 #### Fastly VCL Service - End
 
 provider "sigsci" {
-  corp = var.NGWAF_CORP
-  email = var.NGWAF_EMAIL
-  auth_token = var.NGWAF_TOKEN
+  corp           = var.NGWAF_CORP
+  email          = var.NGWAF_EMAIL
+  auth_token     = var.NGWAF_TOKEN
   fastly_api_key = var.FASTLY_API_KEY
 }
 
@@ -192,7 +192,7 @@ resource "sigsci_edge_deployment_service" "ngwaf_edge_service_link" {
   fastly_sid      = fastly_service_vcl.frontend-vcl-service.id
 
   activate_version = true
-  percent_enabled = 100
+  percent_enabled  = 100
 
   depends_on = [
     sigsci_edge_deployment.ngwaf_edge_site_service,
