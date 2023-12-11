@@ -69,8 +69,8 @@
       "socket_tcpi_total_retrans":%{client.socket.tcpi_total_retrans}V,
       "socket_tcpi_delta_retrans":%{client.socket.tcpi_delta_retrans}V,
       "socket_ploss":%{client.socket.ploss}V,
-      "sigsci-agentresponse":%{req.http.x-sigsci-agentresponse}V,
-      "sigsci-decision-ms":%{req.http.x-sigsci-decision-ms}V,
-      "sigsci-tags":"%{req.http.x-sigsci-tags}V"
+      "sigsci_agentresponse":"%{req.http.x-fastly-ngwaf:agentresponse}V",
+      "sigsci_decision-ms":"%{req.http.x-fastly-ngwaf:decision-ms}V",
+      "sigsci_tags":"%{req.http.x-fastly-ngwaf:tags}V"
     }
   }
