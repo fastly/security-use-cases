@@ -1,5 +1,13 @@
 # What's in the Gold Standard Starter?
 
+## [Stronger security with a unified CDN and WAF](https://www.fastly.com/blog/stronger-security-with-a-unified-cdn-and-waf)
+* Using JA3 signatures and ASNs
+* Utilizing the ASN header
+* Taking Advantage of the Proxy Headers
+* Optimize NGWAF enforcement with the Edge Cloud Network
+* The edge specific integration configurations are in [./gold-standard-starter/rules_with_edge_deployment.tf](./gold-standard-starter/rules_with_edge_deployment.tf)
+
+
 ## Corp configurations
 * Request Rule that adds a Signal for requests that matches on System Attacks AND frequent attack sources
 * Request Rule for a default geo-blocking policy
