@@ -333,12 +333,16 @@ resource "sigsci_site_rule" "enumeration-attack-rule" {
     signal = sigsci_site_signal_tag.bad-response-signal.id
   }
 
-  rate_limit = {
-    threshold = 10,
-    interval  = 1,
-    duration  = 600,
-    # clientIdentifiers = "ip" Defaults to IP
+  rate_limit {
+    threshold = 10
+    interval  = 1
+    duration  = 600
+    client_identifiers {
+      type = "ip" # Defaults to IP
+    }
   }
+
+
   signal = sigsci_site_signal_tag.bad-response-signal.id
 
   depends_on = [
@@ -356,5 +360,5 @@ output "live_waf_love_output" {
   https://dashboard.signalsciences.net/corps/${var.NGWAF_CORP}/sites/${var.NGWAF_SITE}
 
   tfmultiline
-  
+
 }
