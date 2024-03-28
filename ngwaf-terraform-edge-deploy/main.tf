@@ -248,3 +248,20 @@ output "live_waf_love_output" {
     sigsci_edge_deployment_service.ngwaf_edge_service_link
   ]
 }
+
+provider "http" {}
+#### Edge deploy linked data - start
+data "http" "linked_fastly_services" {
+  url = "https://dashboard.signalsciences.net/api/v0/corps/${var.NGWAF_CORP}/sites/${var.NGWAF_SITE}/edgeDeployment"
+
+  request_headers = {
+    x-api-user  = var.NGWAF_EMAIL
+    x-api-token = var.NGWAF_TOKEN
+    Content-Type =  "application/json"
+  }
+}
+#### Edge deploy linked data - end
+
+output "services_linked_to_ngwaf_output" {
+  value = [for item in jsondecode(data.http.linked_fastly_services.response_body)["ServicesAttached"] : item.id]
+}
