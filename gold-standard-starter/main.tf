@@ -342,7 +342,6 @@ resource "sigsci_site_rule" "enumeration-attack-rule" {
     }
   }
 
-
   signal = sigsci_site_signal_tag.bad-response-signal.id
 
   depends_on = [
