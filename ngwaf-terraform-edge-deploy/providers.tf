@@ -7,8 +7,11 @@ terraform {
       version = ">= 5.2.2"
     }
     sigsci = {
-      source = "signalsciences/sigsci"
-      version = ">= 2.1.0"
+      source  = "signalsciences/sigsci"
+      version = ">= 3.0.0"
+    }
+    http = {
+      source = "hashicorp/http"
     }
   }
 }
