@@ -46,12 +46,12 @@ resource "fastly_service_vcl" "frontend-vcl-service" {
     priority = 100
   }
 
-  #### Only disable caching for testing. Do not disable caching for production traffic.
+  #### Disable caching, but keep request collapsing https://www.fastly.com/documentation/reference/vcl/variables/backend-response/beresp-cacheable/#effects-on-request-collapsing
   # snippet {
   #   name = "Disable caching"
-  #   content = file("${path.module}/vcl/disable_caching.vcl")
-  #   type = "recv"
-  #   priority = 220
+  #   content = "set beresp.cacheable = false;"
+  #   type = "fetch"
+  #   priority = 9000
   # }
 
   #### Useful for debugging with response headers
@@ -255,10 +255,11 @@ data "http" "linked_fastly_services" {
   url = "https://dashboard.signalsciences.net/api/v0/corps/${var.NGWAF_CORP}/sites/${var.NGWAF_SITE}/edgeDeployment"
 
   request_headers = {
-    x-api-user  = var.NGWAF_EMAIL
-    x-api-token = var.NGWAF_TOKEN
-    Content-Type =  "application/json"
+    x-api-user   = var.NGWAF_EMAIL
+    x-api-token  = var.NGWAF_TOKEN
+    Content-Type = "application/json"
   }
+  depends_on = [sigsci_edge_deployment_service.ngwaf_edge_service_link]
 }
 #### Edge deploy linked data - end
 
