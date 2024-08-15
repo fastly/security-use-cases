@@ -3,7 +3,7 @@ terraform {
     # https://registry.terraform.io/providers/signalsciences/sigsci/latest
     sigsci = {
       source  = "signalsciences/sigsci"
-      version = ">= 3.0.0"
+      version = ">= 3.3.0"
     }
   }
 }
