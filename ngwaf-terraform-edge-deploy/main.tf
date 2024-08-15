@@ -25,6 +25,13 @@ resource "fastly_service_vcl" "frontend-vcl-service" {
   # Also, removes the sensitive response headers before delivering the response to the client
 
   snippet {
+    name     = "Update for custom logo"
+    content  = file("${path.module}/vcl/custom_challenge_logo.vcl")
+    type     = "init"
+    priority = 100
+  }
+
+  snippet {
     name     = "Add ngwaf log headers"
     content  = file("${path.module}/vcl/add_ngwaf_log_headers.vcl")
     type     = "recv"
