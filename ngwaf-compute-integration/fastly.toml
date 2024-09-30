@@ -1,0 +1,44 @@
+# This file describes a Fastly Compute package. To learn more visit:
+# https://www.fastly.com/documentation/reference/compute/fastly-toml
+
+authors = [""]
+cloned_from = "https://github.com/fastly/compute-starter-kit-rust-empty"
+description = ""
+language = "rust"
+manifest_version = 3
+name = "ngwaf-compute-integration"
+service_id = ""
+
+[scripts]
+  build = "cargo build --bin fastly-compute-project --release --target wasm32-wasi --color always"
+
+[setup]
+
+  [setup.backends]
+
+    [setup.backends.HTTPME]
+      address = "http-me.edgecompute.app"
+      port = 443
+
+  [setup.config_stores]
+
+    [setup.config_stores.ngwaf]
+      description = "Next-gen WAF configuration"
+
+      [setup.config_stores.ngwaf.items]
+
+        [setup.config_stores.ngwaf.items.corp]
+
+        [setup.config_stores.ngwaf.items.site]
+
+[local_server]
+  [local_server.backends]
+    [local_server.backends.HTTPME]
+      url = "https://http.edgecompute.app"
+
+  [local_server.config_stores]
+    [local_server.config_stores.ngwaf]
+      format = "inline-toml"
+    [local_server.config_stores.ngwaf.contents]
+      "corp" = ""
+      "site" = ""
