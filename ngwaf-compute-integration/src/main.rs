@@ -1,8 +1,7 @@
 use fastly::experimental::{inspect, InspectConfig, InspectError, InspectResponse};
 use fastly::handle::BodyHandle;
 use fastly::http::{HeaderValue, StatusCode};
-use fastly::{Backend, Error, Request, Response};
-use std::time::Duration;
+use fastly::{Request, Response};
 
 const HTTPME_BACKEND: &str = "HTTPME";
 
