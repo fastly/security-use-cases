@@ -25,20 +25,14 @@ fn main(mut req: Request) -> Result<Response, fastly::Error> {
         return Ok(waf_inspection_result);
     }
 
-    // if the header target-backend is set then try to construct and send the request to the backend.
-    if req.get_header_str("target-host").is_some(){
-        let resp = dynamic_backend(req)?;
-        return Ok(resp)
-    }
-
     req.set_header("host", "http.edgecompute.app");
 
-    // update
+    // Send request to the backend
+    let resp: Response = req.send(HTTPME_BACKEND)?;
 
-    return Ok(req.send(HTTPME_BACKEND)?)
+    // Return the response back to the client
+    return Ok(resp)
 }
-
-// http https://ngwaf-compute.edgecompute.app -p=bh
 
 fn do_waf_inspect(mut req: Request) -> (Request, Response) {
     // if bypass-waf is present, then do not send the request to the WAF for processing
@@ -145,23 +139,4 @@ fn do_waf_inspect(mut req: Request) -> (Request, Response) {
             );
         }
     }
-}
-
-fn dynamic_backend(req: Request) -> Result<Response, Error> {
-    // Extract backend, headers, and repeat values from the parsed body
-    let target_host = req.get_header_str("target-host").unwrap_or("http.edgecompute.app");
-
-    // Dynamic backend builder
-    let target_backend = Backend::builder(target_host, target_host)
-        .override_host(&target_host)
-        .connect_timeout(Duration::from_secs(1))
-        .first_byte_timeout(Duration::from_secs(15))
-        .between_bytes_timeout(Duration::from_secs(10))
-        .enable_ssl()
-        .sni_hostname(target_host)
-        .override_host(target_host)
-        .finish()?;
-
-    // Return the final response
-    Ok(req.send(target_backend)?)
 }
