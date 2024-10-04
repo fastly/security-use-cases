@@ -1,0 +1,20 @@
+name: Build ngwaf-compute-integration
+on: push
+
+jobs:
+  build-ngwaf-compute-integration:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Fastly CLI
+      uses: fastly/compute-actions/setup@v8
+      with:
+        cli_version: '10.14.1' # optional, defaults to 'latest'
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build Compute Package
+      uses: fastly/compute-actions/build@v8
+      with:
+        verbose: true # optionally enables verbose output, defaults to false
+        project_directory: ./ngwaf-compute-integration
