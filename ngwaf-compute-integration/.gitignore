@@ -2,3 +2,6 @@
 **/*.rs.bk
 /bin
 /pkg
+
+
+fastly.toml
