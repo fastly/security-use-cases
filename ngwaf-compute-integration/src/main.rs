@@ -2,6 +2,7 @@ use fastly::experimental::{inspect, InspectConfig, InspectError, InspectResponse
 use fastly::handle::BodyHandle;
 use fastly::http::{HeaderValue, StatusCode};
 use fastly::{Request, Response};
+use std::collections::HashMap;
 
 const HTTPME_BACKEND: &str = "HTTPME";
 
@@ -30,7 +31,7 @@ fn main(mut req: Request) -> Result<Response, fastly::Error> {
     let resp: Response = req.send(HTTPME_BACKEND)?;
 
     // Return the response back to the client
-    return Ok(resp)
+    return Ok(resp);
 }
 
 fn do_waf_inspect(mut req: Request) -> (Request, Response) {
@@ -66,38 +67,18 @@ fn do_waf_inspect(mut req: Request) -> (Request, Response) {
             let waf_result: Result<InspectResponse, InspectError> = inspect(inspectconf);
 
             match waf_result {
-                Ok(x) => {
+                Ok(inspect_resp) => {
                     // Handling WAF result
                     println!(
                     "waf_status_code: {}\nwaf_tags: {:?}\nwaf_decision_ms: {:?}\nwaf_verdict: {:?}",
-                    x.status(),
-                    x.tags(),
-                    x.decision_ms(),
-                    x.verdict(),
+                    inspect_resp.status(),
+                    inspect_resp.tags(),
+                    inspect_resp.decision_ms(),
+                    inspect_resp.verdict(),
                     );
-                    req.set_header(
-                        "waf-status",
-                        HeaderValue::from_str(&x.status().to_string()).unwrap(),
-                    );
-                    req.set_header(
-                        "waf-tags",
-                        HeaderValue::from_str(
-                            x.tags()
-                                .into_iter()
-                                .collect::<Vec<&str>>()
-                                .join(", ")
-                                .as_str(),
-                        )
-                        .unwrap(),
-                    );
-                    req.set_header(
-                        "waf-decision-ms",
-                        HeaderValue::from_str(format!("{:?}", &x.decision_ms()).as_str()).unwrap(),
-                    );
-                    req.set_header(
-                        "waf-verdict",
-                        HeaderValue::from_str(format!("{:?}", &x.verdict()).as_str()).unwrap(),
-                    );
+                    let waf_inspection_header_val = format_waf_inspection_header(inspect_resp);
+                    
+                    req.set_header("waf-inspect-data", waf_inspection_header_val);
                 }
                 Err(y) => match y {
                     InspectError::InvalidConfig => {
@@ -138,4 +119,32 @@ fn do_waf_inspect(mut req: Request) -> (Request, Response) {
             );
         }
     }
+}
+
+fn format_waf_inspection_header(inspect_resp: InspectResponse) -> String {
+    // Inspired by https://www.fastly.com/documentation/solutions/examples/filter-cookies-or-other-structured-headers/
+
+    println!("Inspection Response: {:?}", inspect_resp);
+
+    let mut filtered_cookie_header_value = "".to_string();
+
+    filtered_cookie_header_value.push_str(&format!("{}{:?};", "status=", inspect_resp.status()));
+    filtered_cookie_header_value.push_str(&format!(
+        "{}{};",
+        "tags=",
+        inspect_resp
+            .tags()
+            .into_iter()
+            .collect::<Vec<&str>>()
+            .join(",")
+            .as_str()
+    ));
+    filtered_cookie_header_value.push_str(&format!(
+        "{}{:?};",
+        "decision_ms=",
+        inspect_resp.decision_ms()
+    ));
+    filtered_cookie_header_value.push_str(&format!("{}{:?}", "verdict=", inspect_resp.verdict()));
+
+    return filtered_cookie_header_value;
 }
