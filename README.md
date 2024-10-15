@@ -1,7 +1,7 @@
 [![CI](https://github.com/fastly/security-use-cases/actions/workflows/github-action.yml/badge.svg)](https://github.com/fastly/security-use-cases/actions/workflows/github-action.yml)
 
-# NextGen WAF Edge Deployment Quick Start
-This repository allows you to quickly deploy a the NextGen WAF Edge integration using Terraform.
+# Fastly Next-Gen WAF (NGWAF) Edge Deployment Quick Start
+This repository allows you to quickly deploy a the NextGen WAF Edge integrations.
 
 # What's been implemented so far?
 ## Gold Standard Starter
@@ -9,6 +9,9 @@ This repository allows you to quickly deploy a the NextGen WAF Edge integration 
 
 ## NGWAF Edge Deployment
 [How to Deploy Fastly’s Next-Gen WAF in less than 10 minutes](https://www.fastly.com/blog/how-to-deploy-fastlys-next-gen-waf-in-less-than-10-minutes)
+
+## NGWAF with Rust SDK Compute
+[Next-Gen WAF in Compute](https://www.fastly.com/documentation/solutions/tutorials/next-gen-waf-compute/)
 
 # Pre-requisites
 * [Clone this repo](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository)
