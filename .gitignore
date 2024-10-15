@@ -33,4 +33,5 @@ gold-standard-starter/.terraform.lock.hcl
 ngwaf-terraform-edge-deploy/terraform.tfvars
 local_lab/*
 
+
 ngwaf-compute-integration/target/*
