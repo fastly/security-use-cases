@@ -35,3 +35,4 @@ local_lab/*
 
 
 ngwaf-compute-integration/target/*
+ngwaf-compute-integration/fastly.toml

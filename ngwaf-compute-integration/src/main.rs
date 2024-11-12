@@ -1,8 +1,7 @@
-use fastly::experimental::{inspect, InspectConfig, InspectError, InspectResponse};
+use fastly::security::{inspect, InspectConfig, InspectError, InspectResponse};
 use fastly::handle::BodyHandle;
-use fastly::http::{HeaderValue, StatusCode};
+use fastly::http::StatusCode;
 use fastly::{Request, Response};
-use std::collections::HashMap;
 
 const HTTPME_BACKEND: &str = "HTTPME";
 
