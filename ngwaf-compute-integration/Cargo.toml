@@ -10,4 +10,4 @@ publish = false
 debug = 1
 
 [dependencies]
-fastly = "0.11.0"
+fastly = "0.11.2"
