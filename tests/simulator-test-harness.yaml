@@ -1,0 +1,132 @@
+# https://www.fastly.com/blog/waf-simulator-transforming-devsecops-workflows
+# https://github.com/fastly/waf-simulator-automation/tree/main
+
+tests:
+  - name: test 001 - form encoded - TRAVERSAL
+    site: terraform_ngwaf_site
+    # rule_id: 63d04576d3b2e101d4f1345d
+    description: tests if request is tagged with site.sensitive-account-api when a request is made to /api/v1/account/update_profile 
+    type: true positive 
+    request: |
+        POST /foobar?key1=value1&attackharness=1 HTTP/1.1
+        Host: sample.foo
+        Accept-Encoding: gzip, deflate
+        Accept-Language: en-us
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Connection: keep-alive
+        Content-Type: application/x-www-form-urlencoded
+        Content-Length: 10000
+        Cookie:
+        User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Safari/605.1.15
+        Cache-Control: max-age=0
+        X-Forwarded-For: 127.0.0.1
+        X-Forwarded-Proto: https
+
+        postkey1=value1&post2=../../../etc/passwd
+    response: |
+      HTTP/1.1 200 OK
+    expect:
+      waf_response: 406
+      signals:
+      - type: TRAVERSAL
+        # detector: 65a190f3e3148001dc71a5ca
+
+  - name: test 002 - JSON - TRAVERSAL
+    site: terraform_ngwaf_site
+    # rule_id: 63d04576d3b2e101d4f1345d
+    description: tests if request is tagged with TRAVERSAL
+    type: true positive 
+    request: |
+        POST /login?key1=value1&attackharness=1 HTTP/1.1
+        Host: sample.foo
+        Accept-Encoding: gzip, deflate
+        Accept-Language: en-us
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Connection: keep-alive
+        Content-Type: application/json
+        Content-Length: 10000
+        Cookie:
+        User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Safari/605.1.15
+        Cache-Control: max-age=0
+        X-Forwarded-For: 127.0.0.1
+        X-Forwarded-Proto: https
+
+        {"postkey1": "value1", "post2": "../../../etc/passwd" }
+    response: |
+      HTTP/1.1 200 OK
+    expect:
+      waf_response: 406
+      signals:
+      - type: TRAVERSAL
+        # detector: 65a190f3e3148001dc71a5ca
+      # - type: site.sensitive-account-api
+      #   detector: 65a190f3e3148001dc71a5ca
+
+
+  - name: test 003  GRAPHQL - TRAVERSAL
+    site: terraform_ngwaf_site
+    # rule_id: 63d04576d3b2e101d4f1345d
+    description: tests if request is tagged with SQLi - GRAPHQL
+    type: true positive 
+    request: |
+      POST /graphql?key1=value1&attackharness=1 HTTP/1.1
+      Host: sample.foo
+      Accept-Encoding: gzip, deflate
+      Accept-Language: en-us
+      Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+      Connection: keep-alive
+      Content-Type: application/graphql
+      Content-Length: 10000
+      Cookie:
+      User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Safari/605.1.15
+      Cache-Control: max-age=0
+      X-Forwarded-For: 127.0.0.1
+      X-Forwarded-Proto: https
+      
+      { 
+        query: query { user(id: "../../../etc/passwd") { name } }
+      }
+    response: |
+      HTTP/1.1 200 OK
+    expect:
+      waf_response: 406
+      signals:
+      - type: GRAPHQL-API
+      - type: TRAVERSAL
+      #   detector: 65a190f3e3148001dc71a5ca
+
+
+  - name: test 004 XML - TRAVERSAL
+    site: terraform_ngwaf_site
+    # rule_id: 63d04576d3b2e101d4f1345d
+    description: tests if request is tagged with site.sensitive-account-api when a request is made to /api/v1/account/reset_api_key
+    type: true positive 
+    request: |
+      POST /foobar?key1=value1&attackharness=1 HTTP/1.1
+      Host: sample.foo
+      Accept-Encoding: gzip, deflate
+      Accept-Language: en-us
+      Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+      Connection: keep-alive
+      Content-Type: application/xml
+      Content-Length: 10000
+      Cookie:
+      User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Safari/605.1.15
+      Cache-Control: max-age=0
+      X-Forwarded-For: 127.0.0.1
+      X-Forwarded-Proto: https
+      
+      <note>
+      <passwd>../../../etc/passwd</passwd>
+      <to>../../../etc/passwd</to>
+      <from>Jani</from>
+      <heading>Reminder</heading>
+      <body>Don't forget me this weekend!</body>
+      </note>
+    response: |
+      HTTP/1.1 200 OK
+    expect:
+      waf_response: 406
+      signals:
+      - type: TRAVERSAL
+      #   detector: 65a190f3e3148001dc71a5ca
