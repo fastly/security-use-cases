@@ -1,0 +1,52 @@
+name: waf simulator demo
+on: 
+  # push:
+  #   branches:
+  #     - main
+  workflow_dispatch:
+    
+jobs:
+  test-rules:
+    name: waf tests
+    # runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
+    environment: staging
+    timeout-minutes: 2  # Set timeout for this step
+    steps:
+    # Checkout the repository to the GitHub Actions runner and setup go
+    - name: Checkout and Golang
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - uses: actions/setup-go@v5
+      with:
+        go-version: '1.21.6'
+    - run: go version
+
+    # Clone the waf-simulator-automation repo 
+    - name: Checkout NGWAF Simulator repo
+      uses: actions/checkout@v4
+      with:
+        repository: 'fastly/waf-simulator-automation'
+        path: 'waf-simulator-automation'
+
+    # Copy customized tests to the waf simulator repo and Remove tests directory from copied repo.
+    - name: Copy customized tests to the waf simulator repo
+      run: |
+        rm -rf ./waf-simulator-automation/tests/rules
+        cp -r ./tests/rules ./waf-simulator-automation/tests/
+    
+    # Build and execute binary for waftests
+    - name: Build binary for waftests
+      working-directory: ./waf-simulator-automation
+      run: |
+        go build -o ../waftests tests/main.go
+        
+    - name: Execute binary for waftests
+      env:
+        SIGSCI_CORP: ${{ secrets.NGWAF_CORP }}
+        SIGSCI_EMAIL: ${{ secrets.NGWAF_EMAIL }}
+        SIGSCI_TOKEN: ${{ secrets.NGWAF_TOKEN }}
+      run: |
+        ./waftests
+        
