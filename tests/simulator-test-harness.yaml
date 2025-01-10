@@ -5,7 +5,7 @@ tests:
   - name: test 001 - form encoded - TRAVERSAL
     site: terraform_ngwaf_site
     # rule_id: 63d04576d3b2e101d4f1345d
-    description: tests if request is tagged with site.sensitive-account-api when a request is made to /api/v1/account/update_profile 
+    description: tests if request is tagged with TRAVERSAL
     type: true positive 
     request: |
         POST /foobar?key1=value1&attackharness=1 HTTP/1.1
