@@ -8,13 +8,13 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: Set up Fastly CLI
-      uses: fastly/compute-actions/setup@v8
+      uses: fastly/compute-actions/setup@latest
       with:
-        cli_version: '10.14.1' # optional, defaults to 'latest'
+        # cli_version: '10.14.1' # optional, defaults to 'latest'
         token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Build Compute Package
-      uses: fastly/compute-actions/build@v8
+      uses: fastly/compute-actions/build@latest
       with:
         verbose: true # optionally enables verbose output, defaults to false
         project_directory: ./ngwaf-compute-integration
