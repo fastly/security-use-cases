@@ -1,4 +1,5 @@
 [![CI](https://github.com/fastly/security-use-cases/actions/workflows/github-action.yml/badge.svg)](https://github.com/fastly/security-use-cases/actions/workflows/github-action.yml)
+[![Build ngwaf-compute-integration](https://github.com/fastly/security-use-cases/actions/workflows/build-ngwaf-compute-integration.yaml/badge.svg)](https://github.com/fastly/security-use-cases/actions/workflows/build-ngwaf-compute-integration.yaml)
 
 # Fastly Next-Gen WAF (NGWAF) Edge Deployment Quick Start
 This repository allows you to quickly deploy a the NextGen WAF Edge integrations.
