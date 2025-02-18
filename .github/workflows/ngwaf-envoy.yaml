@@ -2,6 +2,9 @@ name: Envoy NGWAF Deployment Test
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+    - "envoy-ngwaf-github-action"
   # push:
   #   branches: [ main ]
 
