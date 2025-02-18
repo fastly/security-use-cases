@@ -39,7 +39,7 @@ jobs:
           nohup kubectl port-forward svc/envoy 10000:10000 &
           sleep 3
 
-      - name: Test Envoy with curl
+      - name: Test request to populate logs
         run: curl -v http://localhost:10000/anything/foo
         
       - name: Check health
