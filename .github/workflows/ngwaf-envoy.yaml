@@ -29,7 +29,7 @@ jobs:
             --from-literal=secretaccesskey=${{ secrets.NGWAF_STAGING_SECRETACCESSKEY }}
       
       - name: Deploy Envoy resources from file
-        run: kubectl apply -f k8s/envoy-deployment.yaml
+        run: kubectl apply -f on-prem-ngwaf-integrations/envoy-deployment.yaml
 
       - name: Wait for Envoy rollout
         run: kubectl rollout status deployment/envoy-waf-deployment --timeout=30s
