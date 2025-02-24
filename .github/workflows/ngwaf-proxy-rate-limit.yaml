@@ -26,6 +26,7 @@ jobs:
           sleep 5    
         
       - name: Send requests through NGWAF
+        if: always()
         run: |
           echo "#### Sending requests for rate limiting test domains"
           for i in {1..10}; do
