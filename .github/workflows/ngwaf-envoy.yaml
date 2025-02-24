@@ -39,20 +39,24 @@ jobs:
           nohup kubectl port-forward svc/envoy 10000:10000 &
           sleep 3
 
-      - name: Test request to populate logs
-        run: curl -v http://localhost:10000/anything/foo
+      - name: Test Envoy with curl
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:10000/anything/envoytest)
+          if [ "$response" -ne 200 ]; then
+            echo "Received HTTP status code $response"
+            exit 1
+          fi
         
       - name: Check health
+        if: always()
         run: |
           kubectl get pods
           kubectl describe pods
           kubectl logs $(kubectl get pod -o jsonpath='{.items[0].metadata.name}') --all-containers=true
       
-      - name: Test Envoy with curl
+      - name: Wait for logs to upload
+        if: always()
         run: |
-          response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:10000/anything/foo)
-          if [ "$response" -ne 200 ]; then
-            echo "Received HTTP status code $response"
-            exit 1
-          fi
+          # Wait for agent to upload logs
+          sleep 10
           
