@@ -1,14 +1,9 @@
 # vcl_init
 
-# If there is a cache hit, then the request first goes to the NGWAF.
-# If the Fastly NGWAF returns a block via a 406, then the block will be returned back to the client.
-# If the Fastly NGWAF returns a block via a 567, then a VCL restart occurs
-# the restarted request may then be served from cache. 
-
 backend F_dummy_origin {
   .between_bytes_timeout = 10s;
   .connect_timeout = 1s;
-  .first_byte_timeout = 15s;
+  .first_byte_timeout = 1s;
   .host = "127.0.0.1";
   .max_connections = 200;
   .port = "80";
