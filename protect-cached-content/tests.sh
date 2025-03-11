@@ -1,6 +1,7 @@
 #!/bin/bash
 
 #### not blocked request
+echo "not blocked request"; echo
 for i in {1..10} ; do 
     printf $i
     curl -i -sD - -o /dev/null \
@@ -9,10 +10,16 @@ done
 # expect cache hits
 
 #### blocked request
-curl -s \
-    -H 'pirate:1'\
-    "https://bcunning-caching.global.ssl.fastly.net/anything/apple=theargs"
+echo; echo "blocked request"; echo;
+curl -is \
+    "https://bcunning-caching.global.ssl.fastly.net/anything/apple=theargs" \
+    -H 'pirate:1' | head -n1
 # expect 406
+
+#### bot challenge
+curl -is \
+    "https://bcunning-caching.global.ssl.fastly.net/anything/login" \
+    | grep 'set-cookie'
 
 
 #### RL demo
