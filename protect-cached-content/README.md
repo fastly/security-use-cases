@@ -1,12 +1,8 @@
 # Protecting Cached Content with the Fastly Next-Gen WAF
 
-This implementation does the following
+This implementation changes VCL in a way that allows the NGWAF to inspect content in cache. The NGWAF may be configured to block or challenge in cache content. If no action is taken by the NGWAF, then content may still then be returned from cache.
 
-# Scenarios
-
-There are numerous scenaros that may occur. Here are a few example workflows. 
-
-## Cache HIT
+# Cache HIT
 VCL receives request.
 If the request is a cache HIT, then request is sent to vcl_pass.
 From vcl_pass, the request is sent to the NGWAF.
