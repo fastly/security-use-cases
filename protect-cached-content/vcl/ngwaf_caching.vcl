@@ -21,19 +21,10 @@ sub vcl_hit {
   }
 }
 
-# sub vcl_miss {
-#   if (req.http.dummy == "1") {
-#     set req.backend = F_dummy_origin;
-#   }
-# }
-
 sub vcl_pass {
   if (req.http.is-hit == "true") {
     set req.backend = F_dummy_origin;
   }
-  # if (req.http.dummy == "1") {
-  #   set req.backend = F_dummy_origin;
-  # }
 }
 
 sub vcl_fetch {
@@ -59,16 +50,12 @@ sub vcl_fetch {
   }
 }
 
-sub vcl_deliver {
-    # stash response headers in request so they can be used in logging when using shielding
-    if(fastly.ff.visits_this_service == 0){
-      set resp.http.sigsci-agentresponse = resp.http.x-sigsci-agentresponse;
-      set resp.http.sigsci-decision-ms = resp.http.x-sigsci-decision-ms;
-      set resp.http.sigsci-tags = resp.http.x-sigsci-tags;
-    }
-}
-
-# https://dashboard.signalsciences.net/api/v0/corps/{CORP_SHORT_NAME}/sites/{WORKSPACE_SHORT_NAME}/responses
-
-# if a rule is hit and there are no other block rules ... then return a 567
+# sub vcl_deliver {
+#     # stash response headers in request so they can be used in logging when using shielding
+#     if(fastly.ff.visits_this_service == 0){
+#       set resp.http.sigsci-agentresponse = resp.http.x-sigsci-agentresponse;
+#       set resp.http.sigsci-decision-ms = resp.http.x-sigsci-decision-ms;
+#       set resp.http.sigsci-tags = resp.http.x-sigsci-tags;
+#     }
+# }
 
