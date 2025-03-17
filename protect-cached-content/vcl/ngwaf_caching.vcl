@@ -7,7 +7,6 @@ backend F_dummy_origin {
   .host = "127.0.0.1";
   .max_connections = 200;
   .port = "80";
-  .share_key = "CFIpMui8uetgTCmdgzlBQ5";
 }
 
 sub vcl_recv {
