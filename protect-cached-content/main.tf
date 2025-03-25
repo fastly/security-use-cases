@@ -7,6 +7,12 @@ provider "fastly" {
 resource "fastly_service_vcl" "frontend-vcl-service" {
   name = "Frontend VCL Service - NGWAF edge deploy ${var.USER_VCL_SERVICE_DOMAIN_NAME}"
 
+  product_enablement {
+    origin_inspector = true
+    domain_inspector = true
+    bot_management = true
+  }
+
   domain {
     name    = var.USER_VCL_SERVICE_DOMAIN_NAME
     comment = "Frontend VCL Service - NGWAF edge deploy"
@@ -22,8 +28,8 @@ resource "fastly_service_vcl" "frontend-vcl-service" {
   }
 
   snippet {
-    name     = "Update for custom logo"
-    content  = file("${path.module}/vcl/custom_challenge_logo.vcl")
+    name     = "ngwaf caching"
+    content  = file("${path.module}/vcl/ngwaf_caching.vcl")
     type     = "init"
     priority = 100
   }
@@ -36,36 +42,13 @@ resource "fastly_service_vcl" "frontend-vcl-service" {
     priority = 100
   }
 
-  # https://www.fastly.com/blog/stronger-security-with-a-unified-cdn-and-waf  
+  # Do not use query in URL as part of the cache key to make testing caching easier
   snippet {
-    name     = "cdn enrichment"
-    content  = file("${path.module}/vcl/cdn_enrichment.vcl")
-    type     = "recv"
-    priority = 110
-  }
-
-  snippet {
-    name     = "erl enrichment"
-    content  = file("${path.module}/vcl/erl_enrichment.vcl")
-    type     = "init"
+    name     = "cache path only"
+    content  = file("${path.module}/vcl/cache_path.vcl")
+    type     = "hash"
     priority = 100
   }
-
-  #### Disable caching, but keep request collapsing https://www.fastly.com/documentation/reference/vcl/variables/client-request/req-hash-always-miss/
-  # snippet {
-  #   name = "Disable caching"
-  #   content = "set req.hash_always_miss = true;"
-  #   type = "recv"
-  #   priority = 0
-  # }
-
-  #### Useful for debugging with response headers
-  # snippet {
-  #   name = "Debug headers"
-  #   content = file("${path.module}/vcl/debug_headers.vcl")
-  #   type = "fetch"
-  #   priority = 120
-  # }
 
   #### NGWAF Dynamic Snippets - MANAGED BY FASTLY - Start
   dynamicsnippet {
@@ -93,23 +76,6 @@ resource "fastly_service_vcl" "frontend-vcl-service" {
   dictionary {
     name = "Edge_Security"
   }
-
-  # logging_honeycomb {
-  #   dataset = "NGWAF_EDGE_DATASET"
-  #   name = "NGWAF_EDGE_LOGS"
-  #   token = var.HONEYCOMB_API_KEY
-  #   format = file("${path.module}/ngwaf_honeycomb_logging_format.json")
-  # }
-
-  # logging_splunk {
-  #   name  = var.SPLUNK_LOGGING_NAME
-  #   token = var.SPLUNK_LOGGING_TOKEN
-  #   url   = var.SPLUNK_LOGGING_URL
-  #   format_version = 2
-  #   format = file("${path.module}/ngwaf_splunk_logging_format.json")
-  #   tls_ca_cert = file("${path.module}/splunk_ca_cert.pem")
-  #   use_tls = true
-  # }
 
   force_destroy = true
 }
@@ -198,16 +164,16 @@ resource "sigsci_edge_deployment_service" "ngwaf_edge_service_link" {
   ]
 }
 
-resource "sigsci_edge_deployment_service_backend" "ngwaf_edge_service_backend_sync" {
-  site_short_name = var.NGWAF_SITE
-  fastly_sid      = fastly_service_vcl.frontend-vcl-service.id
+# resource "sigsci_edge_deployment_service_backend" "ngwaf_edge_service_backend_sync" {
+#   site_short_name = var.NGWAF_SITE
+#   fastly_sid      = fastly_service_vcl.frontend-vcl-service.id
 
-  fastly_service_vcl_active_version = fastly_service_vcl.frontend-vcl-service.active_version
+#   fastly_service_vcl_active_version = fastly_service_vcl.frontend-vcl-service.active_version
 
-  depends_on = [
-    sigsci_edge_deployment_service.ngwaf_edge_service_link,
-  ]
-}
+#   depends_on = [
+#     sigsci_edge_deployment_service.ngwaf_edge_service_link,
+#   ]
+# }
 
 #### Edge deploy and sync - End
 

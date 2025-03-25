@@ -1,0 +1,50 @@
+name: Rate Limiting Demo
+
+on:
+  workflow_dispatch:
+
+jobs:
+  ngwaf-rate-limiting-demo:
+    runs-on: ubuntu-latest
+    environment: staging
+    timeout-minutes: 2
+    services:
+      sigsci:    
+        image: signalsciences/sigsci-agent:latest
+        env:
+         SIGSCI_ACCESSKEYID: ${{ secrets.NGWAF_STAGING_ACCESSKEYID }}
+         SIGSCI_SECRETACCESSKEY: ${{ secrets.NGWAF_STAGING_SECRETACCESSKEY }}
+         SIGSCI_REVPROXY_LISTENER: "app1:{listener=http://0.0.0.0:8888,upstreams=https://http-me.edgecompute.app:443/,pass-host-header=false};"
+         SIGSCI_UPLOAD_INTERVAL: "5s"
+        ports:
+          - 8888:8888
+
+    steps:
+      - name: Wait for NGWAF Agent
+        run: |
+          # Wait for agent to be ready
+          sleep 5    
+        
+      - name: Send requests through NGWAF
+        run: |
+          echo "#### Sending requests for rate limiting test domains"
+          for i in {1..10}; do
+            echo "Request Number: $i"
+            response=$(curl -si -H 'host:api.bubbs.coffee' -X POST 'http://0.0.0.0:8888/anything/start-ai-chat' -H api-key:gh-action-rl-demo)
+            echo "$response"
+            # Extract the HTTP status code from the first line (e.g., "HTTP/1.1 406 Not Acceptable")
+            status=$(echo "$response" | head -n 1 | awk '{print $2}')
+            if [ $i -gt 4 ] && [ "$status" != "406" ]; then
+              echo "Error: Unexpected status code: $status on request $i"
+              exit 1
+            fi
+            echo
+          done
+          
+          
+                  
+      - name: Wait for logs to upload
+        if: always()
+        run: |
+          # Wait for agent to upload logs
+          sleep 10

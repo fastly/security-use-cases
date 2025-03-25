@@ -1,3 +1,2 @@
-#### https://docs.fastly.com/en/guides/temporarily-disabling-caching
-#### Do not use this for production traffic
-return(pass);
+# https://www.fastly.com/documentation/reference/vcl/variables/client-request/req-hash-always-miss/
+set req.hash_always_miss = true;
