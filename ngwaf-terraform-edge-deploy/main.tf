@@ -51,12 +51,12 @@ resource "fastly_service_vcl" "frontend-vcl-service" {
     priority = 100
   }
 
-  #### Disable caching, but keep request collapsing https://www.fastly.com/documentation/reference/vcl/variables/backend-response/beresp-cacheable/#effects-on-request-collapsing
+  #### Disable caching, but keep request collapsing https://www.fastly.com/documentation/reference/vcl/variables/client-request/req-hash-always-miss/
   # snippet {
   #   name = "Disable caching"
-  #   content = "set beresp.cacheable = false;"
-  #   type = "fetch"
-  #   priority = 9000
+  #   content = "set req.hash_always_miss = true;"
+  #   type = "recv"
+  #   priority = 0
   # }
 
   #### Useful for debugging with response headers
