@@ -19,6 +19,11 @@ backend F_noop_origin {
 # force cluster for all requests and on restarts. https://www.fastly.com/documentation/guides/vcl/clustering/#enabling-and-disabling-clustering
 sub vcl_recv {
   set req.http.Fastly-Force-Shield = "1";
+
+  # enable ngwaf logging headers
+  if (req.restarts == 0 && fastly.ff.visits_this_service == 0) {
+    set req.http.X-Sigsci-Response-Headers = "true";
+  }
 }
 
 # On cache hit, send the request to NGWAF
