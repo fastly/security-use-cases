@@ -1,4 +1,4 @@
-use fastly::security::{inspect, InspectConfig, InspectError, InspectResponse, InspectVerdict};
+use fastly::security::{inspect, InspectConfig, InspectResponse, InspectVerdict};
 use fastly::handle::BodyHandle;
 use fastly::http::{HeaderName, HeaderValue, StatusCode};
 use fastly::{Request, Response};
