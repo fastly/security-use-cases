@@ -12,6 +12,11 @@ jobs:
       with:
         # cli_version: '10.14.1' # optional, defaults to 'latest'
         token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+      with:
+          targets: wasm32-wasip1 # WebAssembly target
 
     - name: Build Compute Package
       uses: fastly/compute-actions/build@v11
