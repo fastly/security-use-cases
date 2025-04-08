@@ -13,7 +13,7 @@ jobs:
     - name: Set up Fastly CLI
       uses: fastly/compute-actions/setup@v11
       with:
-        cli_version: '10.18.0' # optional, defaults to 'latest'
+        cli_version: '11.1.0' # optional, defaults to 'latest'
         token: ${{ secrets.GITHUB_TOKEN }}
     
     # - name: Install Rust toolchain
