@@ -5,7 +5,10 @@ jobs:
   build-ngwaf-compute-integration:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
+
+    - name: Setup Rust toolchain with caching
+      uses: actions-rust-lang/setup-rust-toolchain@v1
 
     - name: Set up Fastly CLI
       uses: fastly/compute-actions/setup@v11
@@ -13,8 +16,11 @@ jobs:
         cli_version: '10.18.0' # optional, defaults to 'latest'
         token: ${{ secrets.GITHUB_TOKEN }}
     
-    - name: Install Rust toolchain
-      run : rustup target add wasm32-wasip1
+    # - name: Install Rust toolchain
+    #   run : rustup target add wasm32-wasip1
+
+    - name: Build (using cargo)
+      run: RUSTFLAGS="--deny warnings" cargo build --profile release    
 
     - name: Build Compute Package
       uses: fastly/compute-actions/build@v11
