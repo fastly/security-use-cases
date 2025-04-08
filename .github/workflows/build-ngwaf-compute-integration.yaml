@@ -20,7 +20,9 @@ jobs:
     #   run : rustup target add wasm32-wasip1
 
     - name: Build (using cargo)
-      run: RUSTFLAGS="--deny warnings" cargo build --profile release    
+      run: |
+        cd ./ngwaf-compute-integration
+        RUSTFLAGS="--deny warnings" cargo build --profile release    
 
     - name: Build Compute Package
       uses: fastly/compute-actions/build@v11
