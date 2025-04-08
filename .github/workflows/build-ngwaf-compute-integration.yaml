@@ -12,6 +12,9 @@ jobs:
       with:
         cli_version: '10.18.0' # optional, defaults to 'latest'
         token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Install Rust toolchain
+      run : rustup target add wasm32-wasip1
 
     - name: Build Compute Package
       uses: fastly/compute-actions/build@v11

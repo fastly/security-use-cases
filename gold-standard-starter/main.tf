@@ -249,7 +249,6 @@ resource "sigsci_corp_list" "anomaly-attack-signals-list" {
     "ABNORMALPATH",
     "CODEINJECTION",
     "DOUBLEENCODING",
-    "DUPLICATE-HEADERS",
     "NOTUTF8",
     "MALFORMED-DATA",
     "NOUA",

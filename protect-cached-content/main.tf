@@ -10,7 +10,7 @@ resource "fastly_service_vcl" "frontend-vcl-service" {
   product_enablement {
     origin_inspector = true
     domain_inspector = true
-    bot_management = true
+    bot_management   = true
   }
 
   domain {
@@ -31,14 +31,6 @@ resource "fastly_service_vcl" "frontend-vcl-service" {
     name     = "ngwaf caching"
     content  = file("${path.module}/vcl/ngwaf_caching.vcl")
     type     = "init"
-    priority = 100
-  }
-
-  # Adds the necessary header to enable response headers from the NGWAF edge deployment, which may then be used for logging. 
-  snippet {
-    name     = "Add ngwaf log headers"
-    content  = file("${path.module}/vcl/add_ngwaf_log_headers.vcl")
-    type     = "recv"
     priority = 100
   }
 
