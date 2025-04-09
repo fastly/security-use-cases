@@ -176,6 +176,8 @@ spec:
           value: "true"
         - name: SIGSCI_WAF_DATA_LOG
           value: "/dev/stdout"
+        - name: SIGSCI_UPLOAD_INTERVAL
+          value: "10s"
         ports:
         - containerPort: 9999
         securityContext:
