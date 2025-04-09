@@ -58,5 +58,5 @@ jobs:
         if: always()
         run: |
           # Wait for agent to upload logs
-          sleep 10
+          sleep 15
           
