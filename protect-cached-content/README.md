@@ -8,7 +8,7 @@ If the request is a cache HIT, then request is sent to vcl_pass.
 From vcl_pass, the request is sent to the NGWAF.
 
 ## Note on shielding
-It is expected that the request will be inspected by the WAF at the location where there is a cache HIT. This means that if shielding is used, then the edge PoP may be used for the NGWAF inspection if the cache HIT occurs at the Fastly edge PoP. If the request makes it to the shield where there is a cache HTI, then that is where the NGWAF will perform the inspection.
+It is expected that the request will be inspected by the WAF at the location where there is a cache HIT. This means that if shielding is used, then the edge PoP may be used for the NGWAF inspection if the cache HIT occurs at the Fastly edge PoP. If the request makes it to the shield where there is a cache HIT, then that is where the NGWAF will perform the inspection.
 
 ## Blocked or challenged
 If the NGWAF returns a BLOCK or CHALLENGED signal, then the NGWAF response is returned to the client
