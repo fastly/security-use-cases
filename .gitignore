@@ -40,3 +40,4 @@ ngwaf-compute-integration/ngwaf_edge_deployment_link.sh
 protect-cached-content/terraform.auto.tfvars
 /protect-cached-content/registry.terraform.io
 gold-standard-starter/terraform.auto.tfvars
+on-prem-ngwaf-integrations/.DS_Store
