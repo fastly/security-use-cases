@@ -1,4 +1,4 @@
-# Super simple docker only NGWAF deployment
+# Super simple container only NGWAF deployment
 
 Update the following docker run command with your ACCESSKEYID and SECRETACCESSKEY. https://docs.fastly.com/en/ngwaf/agent-config
 
