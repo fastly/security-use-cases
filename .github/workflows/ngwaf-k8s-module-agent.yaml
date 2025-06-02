@@ -19,7 +19,7 @@ jobs:
 
       - name: build and load helloworld module
         run: |
-          docker build . -t signalsciences/example-helloworld:latest
+          docker build on-prem-ngwaf-integrations/k8s-module-agent -t signalsciences/example-helloworld:latest
           kind load docker-image signalsciences/example-helloworld:latest
         
       - name: Create Kubernetes Secret
