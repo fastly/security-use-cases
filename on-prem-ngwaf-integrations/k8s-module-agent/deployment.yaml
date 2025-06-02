@@ -1,0 +1,123 @@
+# apiVersion: v1
+# kind: Namespace
+# metadata:
+#   name: fastly-waf
+# ---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ngwaf-agent-credentials
+  # namespace: fastly-waf
+# stringData:
+#   # IMPORTANT: Replace these placeholder values with your actual Fastly NGWAF Agent key information
+#   accesskeyid: "YOUR_FASTLY_NGWAF_KEY_ID_REPLACE_ME"
+#   secretaccesskey: "YOUR_FASTLY_NGWAF_SECRET_ACCESS_KEY_REPLACE_ME"
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: fastly-agent-sa
+  # namespace: fastly-waf
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8-ngwaf-module-agent # Replace with your application's deployment name
+  # namespace: fastly-waf
+  labels:
+    app: k8s-ngwaf-module-agent-app # Label for Service selector and general identification
+spec:
+  replicas: 1 # Adjust replica count as needed
+  selector:
+    matchLabels:
+      app: my-application # Must match spec.template.metadata.labels
+  template:
+    metadata:
+      labels:
+        app: my-application # Pods will carry this label
+    spec:
+      serviceAccountName: fastly-agent-sa # Use the dedicated ServiceAccount
+      volumes:
+        # Shared volume for RPC socket and agent temporary files
+        - name: sigsci-tmp
+          emptyDir: {}
+      containers:
+        - name: my-application # Replace with your application container's name
+          # IMPORTANT: Replace with your application's image and tag
+          image: signalsciences/example-helloworld:latest # e.g., signalsciences/example-helloworld:latest or your custom app
+          imagePullPolicy: Never # Or your preferred policy
+          args:
+            # These args are typical for an app configured to use the agent via UDS.
+            # Adjust according to your application's requirements.
+            - "localhost:8000" # Application's internal listen address (host:port)
+            - "/sigsci/tmp/sigsci.sock" # Path to the Fastly agent's RPC socket
+          ports:
+            - name: http # Named port for clarity and Service targetPort reference
+              containerPort: 8000 # IMPORTANT: Your application's actual listening port
+          volumeMounts:
+            - name: sigsci-tmp
+              mountPath: /sigsci/tmp # Mount the shared volume for RPC socket access
+
+        - name: sigsci-agent
+          # IMPORTANT: Use a specific version of the agent for production stability
+          image: signalsciences/sigsci-agent:latest # Replace x.xx.x with a specific agent version
+          imagePullPolicy: IfNotPresent # Recommended for versioned tags
+          env:
+            - name: SIGSCI_ACCESSKEYID
+              valueFrom:
+                secretKeyRef:
+                  name: ngwaf-agent-keys # References the Secret defined above
+                  key: accesskeyid
+            - name: SIGSCI_SECRETACCESSKEY
+              valueFrom:
+                secretKeyRef:
+                  name: ngwaf-agent-keys # References the Secret defined above
+                  key: secretaccesskey
+            - name: SIGSCI_DEBUG_LOG_BLOCKED_REQUESTS
+              value: "1"
+            - name: SIGSCI_DEBUG_LOG_WEB_INPUTS
+              value: "1"
+            - name: SIGSCI_DEBUG_LOG_CONFIG_UPDATES
+              value: "1"
+            - name: SIGSCI_DEBUG_LOG_CONFIG_UPLOADS
+              value: "1"
+            - name: SIGSCI_DEBUG_LOG_WEB_OUTPUTS
+              value: "1"
+            # - name: SIGSCI_LOG_OUT
+            #   value: "/var/log/ngwaf.log"
+
+            # Optional: Uncomment and set if you need to override the default RPC address
+            # - name: SIGSCI_RPC_ADDRESS
+            #   value: "/sigsci/tmp/sigsci.sock"
+            # Optional: Uncomment and set other SIGSCI_ environment variables as needed
+            # - name: SIGSCI_MAX_PROCS
+            #   value: "2"
+          securityContext:
+            readOnlyRootFilesystem: true # Enhances security by making root FS read-only
+          volumeMounts:
+            - name: sigsci-tmp
+              mountPath: /sigsci/tmp # Agent needs this for UDS, cache, and temp files
+          lifecycle:
+            preStop:
+              exec:
+                # Allows agent to gracefully handle in-flight requests before termination
+                command: ["/bin/sh", "-c", "sleep 30"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-application-service # Replace with your application's service name
+  # namespace: fastly-waf
+spec:
+  selector:
+    app: my-application # Must match the labels on the Pods in the Deployment
+  ports:
+    - name: http # Can be referenced by Ingress or other services
+      protocol: TCP
+      port: 80 # The port the Service listens on (external to the pod within the cluster)
+      targetPort: http # Targets the named port 'http' (e.g., 8000) on the application container
+  # type: ClusterIP # Default. Exposes the Service on an internal IP in the cluster.
+  # Uncomment type: LoadBalancer for external access via a cloud provider's load balancer.
+  # type: LoadBalancer
+  # Ensure your cluster supports LoadBalancer services and has appropriate quotas.
+  #

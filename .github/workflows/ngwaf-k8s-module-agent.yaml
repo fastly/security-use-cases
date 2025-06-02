@@ -1,0 +1,62 @@
+name: k8s module-agent NGWAF Deployment
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up kind
+        uses: engineerd/setup-kind@v0.6.2
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: build and load helloworld module
+        run: |
+          docker build . -t signalsciences/example-helloworld:latest
+          kind load docker-image signalsciences/example-helloworld:latest
+        
+      - name: Create Kubernetes Secret
+        run: |
+          kubectl create secret generic ngwaf-agent-keys \
+            --from-literal=accesskeyid=${{ secrets.NGWAF_STAGING_ACCESSKEYID }} \
+            --from-literal=secretaccesskey=${{ secrets.NGWAF_STAGING_SECRETACCESSKEY }}
+      
+      - name: Deploy resources from file
+        run: kubectl apply -f on-prem-ngwaf-integrations/k8s-module-agent/deployment.yaml
+
+      - name: Wait for rollout
+        run: kubectl rollout status deployment/k8s-module-agent --timeout=30s
+      
+      - name: Port-forward Service
+        run: |
+          nohup kubectl port-forward svc/my-application-service 10000:80 &
+          sleep 3
+
+      - name: Test with curl
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:10000/anything/k8stest)
+          if [ "$response" -ne 200 ]; then
+            echo "Received HTTP status code $response"
+            exit 1
+          fi
+        
+      - name: Check health
+        if: always()
+        run: |
+          kubectl get pods
+          kubectl describe pods
+          kubectl logs $(kubectl get pod -o jsonpath='{.items[0].metadata.name}') --all-containers=true
+      
+      - name: Wait for logs to upload
+        if: always()
+        run: |
+          # Wait for agent to upload logs
+          sleep 15
+          
