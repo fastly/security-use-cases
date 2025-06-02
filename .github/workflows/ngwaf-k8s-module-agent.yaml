@@ -32,7 +32,7 @@ jobs:
         run: kubectl apply -f on-prem-ngwaf-integrations/k8s-module-agent/deployment.yaml
 
       - name: Wait for rollout
-        run: kubectl rollout status deployment/k8-ngwaf-module-agent--timeout=30s
+        run: kubectl rollout status deployment/k8-ngwaf-module-agent --timeout=30s
       
       - name: Port-forward Service
         run: |
