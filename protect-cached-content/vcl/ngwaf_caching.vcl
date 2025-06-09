@@ -5,15 +5,23 @@ backend F_noop_origin {
   .between_bytes_timeout = 10s;
   .connect_timeout = 1s;
   .first_byte_timeout = 1s;
-  .host = "127.0.0.1";
+  .host = "noop-caching.global.ssl.fastly.net";
   .max_connections = 200;
   .port = "443";
   .ssl = true;
   .max_tls_version = "1.3";
-  .min_tls_version = "1.3";
-  .ssl_cert_hostname = "127.0.0.1";
+  .min_tls_version = "1.1";
+  .ssl_cert_hostname = "noop-caching.global.ssl.fastly.net";
   .ssl_check_cert = always;
-  .ssl_sni_hostname = "127.0.0.1";
+  .ssl_sni_hostname = "noop-caching.global.ssl.fastly.net";
+  .probe = {
+        .dummy = true;
+        .initial = 5;
+        .request = "HEAD / HTTP/1.1"  "Host: noop-caching.global.ssl.fastly.net" "Connection: close";
+        .threshold = 1;
+        .timeout = 2s;
+        .window = 5;
+  }
 }
 
 # force cluster for all requests and on restarts. https://www.fastly.com/documentation/guides/vcl/clustering/#enabling-and-disabling-clustering

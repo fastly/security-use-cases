@@ -14,7 +14,12 @@ variable "USER_VCL_SERVICE_DOMAIN_NAME" {
 variable "USER_VCL_SERVICE_BACKEND_HOSTNAME" {
   type          = string
   description   = "hostname used for backend."
-  default       = "http-me.glitch.me"
+  default       = "http.edgecompute.app"
+}
+
+variable "USER_NOOP_SERVICE_DOMAIN_NAME" {
+  type = string
+  description = "noop service."
 }
 
 #### VCL Service variables - End

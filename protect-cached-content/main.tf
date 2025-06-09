@@ -8,9 +8,10 @@ resource "fastly_service_vcl" "frontend-vcl-service" {
   name = "Frontend VCL Service - NGWAF edge deploy ${var.USER_VCL_SERVICE_DOMAIN_NAME}"
 
   product_enablement {
-    origin_inspector = true
-    domain_inspector = true
-    bot_management   = true
+    origin_inspector      = true
+    domain_inspector      = true
+    bot_management        = true
+    log_explorer_insights = true
   }
 
   domain {
