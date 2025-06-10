@@ -33,6 +33,7 @@ sequenceDiagram
     Note right of VCL: Cache HIT
     VCL-->>VCL: VCL pass
     VCL-->>NGWAF: Do WAF Inspection
+    NGWAF<<-->>NOOP_Origin: Always 200 response
     NGWAF-->>VCL: Return WAF result
     Note right of VCL: Allowed
     VCL-->>-VCL: VCL restart
