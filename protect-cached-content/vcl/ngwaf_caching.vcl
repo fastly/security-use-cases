@@ -6,6 +6,8 @@ backend F_noop_origin {
   .connect_timeout = 1s;
   .first_byte_timeout = 1s;
   .host = "noop-caching.global.ssl.fastly.net";
+  .host_header = "noop-caching.global.ssl.fastly.net";
+  .always_use_host_header = true;
   .max_connections = 200;
   .port = "443";
   .ssl = true;
