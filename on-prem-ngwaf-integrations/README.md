@@ -8,7 +8,7 @@ flowchart LR
     ORIGIN[Origin]
     
     Client --> |YOURSITE.foo.bar| ISTIO_SERVICE
-    subgraph fastly_edge[Fastly Edge]
+    subgraph k8s_pod[Kubernetes Pod]
         ISTIO_SERVICE <-..->  NGWAF_AGENT
         ISTIO_SERVICE --> ORIGIN
     end
