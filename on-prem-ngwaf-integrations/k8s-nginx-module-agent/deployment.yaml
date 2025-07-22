@@ -1,0 +1,131 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: k8-nginx-module-agent-config
+data:
+  # This is the main NGINX configuration file.
+  # It's updated to include the load_module directive at the top.
+  nginx.conf: |
+    load_module /etc/nginx/modules/ngx_http_fastly_module.so;
+    user  nginx;
+    worker_processes  auto;
+    error_log  /var/log/nginx/error.log notice;
+    pid        /var/run/nginx.pid;
+    
+    events {
+        worker_connections  1024;
+    }
+    
+    http {
+        include       /etc/nginx/mime.types;
+        default_type  application/octet-stream;
+        log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                          '$status $body_bytes_sent "$http_referer" '
+                          '"$http_user_agent" "$http_x_forwarded_for"';
+        access_log  /var/log/nginx/access.log  main;
+        sendfile        on;
+        keepalive_timeout  65;
+        # This line is crucial for loading our server block configuration.
+        include /etc/nginx/conf.d/*.conf;
+
+        # Fastly NGWAF specific
+        sigsci_agent_host unix:/sigsci/tmp/sigsci.sock; 
+    }
+  # This is the server block configuration.
+  default.conf: |
+    server {
+        listen 80;
+        location / {
+            return 200 'Hello World from NGINX with Fastly Next-Gen WAF';
+        }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8-nginx-module-agent-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k8-nginx-module-agent
+  template:
+    metadata:
+      labels:
+        app: k8-nginx-module-agent
+    spec:
+      containers:
+      - name: nginx
+        image: my-local-images/nginx-module:latest
+        imagePullPolicy: Never 
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        # This mount places the server block config in the conf.d directory.
+        - name: nginx-config-volume
+          mountPath: /etc/nginx/conf.d/default.conf
+          subPath: default.conf
+        # This new mount overwrites the main nginx.conf file.
+        - name: nginx-config-volume
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+        - name: sigsci-tmp
+          mountPath: /sigsci/tmp        
+      - name: sigsci-agent
+        # IMPORTANT: Use a specific version of the agent for production stability
+        image: signalsciences/sigsci-agent:latest # Replace with a specific agent version
+        imagePullPolicy: IfNotPresent # Recommended for versioned tags
+        env:
+          - name: SIGSCI_ACCESSKEYID
+            valueFrom:
+              secretKeyRef:
+                name: sigsci.my-site-name-here # References the Secret defined above
+                key: accesskeyid
+          - name: SIGSCI_SECRETACCESSKEY
+            valueFrom:
+              secretKeyRef:
+                name: sigsci.my-site-name-here # References the Secret defined above
+                key: secretaccesskey
+          - name: SIGSCI_DEBUG_LOG_BLOCKED_REQUESTS
+            value: "1"
+          - name: SIGSCI_DEBUG_LOG_WEB_INPUTS
+            value: "1"
+          - name: SIGSCI_DEBUG_LOG_CONFIG_UPDATES
+            value: "1"
+          - name: SIGSCI_DEBUG_LOG_CONFIG_UPLOADS
+            value: "1"
+          - name: SIGSCI_DEBUG_LOG_WEB_OUTPUTS
+            value: "1"      
+        volumeMounts:
+        - name: sigsci-tmp
+          mountPath: /sigsci/tmp
+      volumes:
+      # This volume makes the ConfigMap data available to the containers.
+      - name: nginx-config-volume
+        configMap:
+          name: k8-nginx-module-agent-config
+      # https://www.fastly.com/documentation/guides/next-gen-waf/setup-and-configuration/kubernetes/kubernetes-agent-module/#agent-temporary-volume
+      - name: sigsci-tmp
+        emptyDir: {}
+---
+# This Service exposes the NGINX deployment to external traffic.
+apiVersion: v1
+kind: Service
+metadata:
+  # The name of the service.
+  name: k8-nginx-module-agent-service
+spec:
+  # Type "NodePort" exposes the service on a static port on each node's IP.
+  type: NodePort
+  selector:
+    # This selector must match the labels of the pods you want to target.
+    # In this case, it matches the pods from our deployment.
+    app: k8-nginx-module-agent
+  ports:
+    # This section defines the port mapping.
+    - protocol: TCP
+      # The port that the service will be exposed on internally in the cluster.
+      port: 80
+      # The port on the container that traffic will be forwarded to.
+      targetPort: 80
+
