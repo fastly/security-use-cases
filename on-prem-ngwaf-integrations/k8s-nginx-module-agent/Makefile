@@ -13,7 +13,7 @@ docker:
 	docker build . -t my-local-images/nginx-module:latest
 	kind load docker-image my-local-images/nginx-module:latest
 	docker pull signalsciences/sigsci-agent:latest
-# 	kubectl port-forward svc/my-application-service 8080:80
+
 
 drunexec:
 # 	@docker run --publish 8888:8888 --publish 9999:9999 --name $(DOCKERNAME) --env SIGSCI_ACCESSKEYID=${NGWAFACCESSKEYID} --env SIGSCI_SECRETACCESSKEY=${NGWAFACCESSKEYSECRET} --env SIGSCI_WAF_DATA_LOG="/dev/stdout" --env SIGSCI_DEBUG_ALL_THE_THINGS="true" --env SIGSCI_REVPROXY_LISTENER="app1:{listener=http://0.0.0.0:8888,upstreams=https://http-me.edgecompute.app:443/,pass-host-header=false}; app2:{listener=http://0.0.0.0:9999, upstreams=https://http-me.glitch.me/,pass-host-header=false}" -it signalsciences/sigsci-agent
@@ -37,7 +37,6 @@ build:
 
 demo:
 	echo "curl 127.0.0.1:8080 -i"
-# 	kubectl port-forward svc/my-application-service 8080:80
 	kubectl port-forward service/k8-nginx-module-agent-service 8080:80
 
 logs:
@@ -80,3 +79,4 @@ make exec:
 # kubectl describe secret ngwaf-agent-keys
 # kubectl get secret ngwaf-agent-keys -o jsonpath='{.data}' | jq .accesskeyid -r | base64 -D
 # kubectl delete secret ngwaf-agent-keys
+# k9s is great too
