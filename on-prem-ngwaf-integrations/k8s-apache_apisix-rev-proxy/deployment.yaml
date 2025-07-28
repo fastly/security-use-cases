@@ -1,0 +1,72 @@
+# Correct deployment.yaml with namespace specified
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: getting-started-ip
+  namespace: ingress-apisix # <-- Required
+spec:
+  ingressClassName: apisix
+  rules:
+    - http:
+        paths:
+          - backend:
+              service:
+                name: httpbin
+                port:
+                  number: 80
+            path: /
+            pathType: Prefix
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: httpbin-deployment
+  namespace: ingress-apisix # <-- Required
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: httpbin-deployment
+  template:
+    metadata:
+      labels:
+        app: httpbin-deployment
+    spec:
+      containers:
+      # ... your container spec ...
+      - name: sigsci-agent
+        image: signalsciences/sigsci-agent:latest
+        env:
+        - name: SIGSCI_ACCESSKEYID
+          valueFrom:
+            secretKeyRef:
+              name: sigsci.my-site-name-here
+              key: accesskeyid
+        - name: SIGSCI_SECRETACCESSKEY
+          valueFrom:
+            secretKeyRef:
+              name: sigsci.my-site-name-here
+              key: secretaccesskey
+        - name: SIGSCI_REVPROXY_LISTENER
+          value: "app1:{listener=http://0.0.0.0:8080,upstreams=https://http-me.edgecompute.app:443/,pass-host-header=false}"
+        volumeMounts:
+        - name: sigsci-tmp
+          mountPath: /sigsci/tmp
+      volumes:
+      - name: sigsci-tmp
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: httpbin
+  namespace: ingress-apisix # <-- Required
+spec:
+  selector:
+    app: httpbin-deployment
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 8080
+  type: ClusterIP
