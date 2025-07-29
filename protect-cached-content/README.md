@@ -25,7 +25,9 @@ sequenceDiagram
 ```
 ## Not Blocked or challenged
 If the NGWAF does not return a BLOCK or CHALLENGED signal, then a restart occurs.
-The restart should then result in a cache HIT again. The content in cache is returned to the user. 
+The restart should then result in a cache HIT again. The content in cache is returned to the user.
+
+The code in this repo will assist with setting up the NOOP origin. It must be a new/separate service in your account, and will be counted towards your request count.
 
 ```mermaid
 sequenceDiagram
@@ -44,3 +46,22 @@ sequenceDiagram
 
 ## Cache MISS
 No change in the NGWAF or VCL behavior for a cache MISS.
+
+```mermaid
+sequenceDiagram
+    Client->>+VCL: GET /product/123
+    Note right of VCL: Cache MISS/PASS
+    VCL-->>NGWAF: Do WAF Inspection
+    alt WAF decision: allowed
+        NGWAF-->>VCL: Return WAF result
+        Note right of VCL: Allowed
+        VCL ->> Origin: GET /product/123
+        Origin ->> VCL: Return response
+    else WAF decision: blocked or challenged
+        NGWAF-->>VCL: Return WAF result
+        Note right of VCL: Blocked or Challenged
+    end
+    VCL-->>-VCL: After fetch activities
+    VCL->>Client: Return response
+    
+```
