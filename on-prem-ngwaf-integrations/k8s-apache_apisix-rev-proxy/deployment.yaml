@@ -1,4 +1,3 @@
-# Correct deployment.yaml with namespace specified
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -11,7 +10,7 @@ spec:
         paths:
           - backend:
               service:
-                name: httpbin
+                name: fastly-ngwaf
                 port:
                   number: 80
             path: /
@@ -20,23 +19,32 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: httpbin-deployment
+  name: ngwaf-apache-apisix-deployment
   namespace: ingress-apisix # <-- Required
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: httpbin-deployment
+      app: ngwaf-apache-apisix-deployment
   template:
     metadata:
       labels:
-        app: httpbin-deployment
+        app: ngwaf-apache-apisix-deployment
     spec:
       containers:
-      # ... your container spec ...
       - name: sigsci-agent
         image: signalsciences/sigsci-agent:latest
         env:
+        - name: SIGSCI_DEBUG_LOG_BLOCKED_REQUESTS
+          value: "1"
+        - name: SIGSCI_DEBUG_LOG_WEB_INPUTS
+          value: "1"
+        - name: SIGSCI_DEBUG_LOG_CONFIG_UPDATES
+          value: "1"
+        - name: SIGSCI_DEBUG_LOG_CONFIG_UPLOADS
+          value: "1"
+        - name: SIGSCI_DEBUG_LOG_WEB_OUTPUTS
+          value: "1"             
         - name: SIGSCI_ACCESSKEYID
           valueFrom:
             secretKeyRef:
@@ -48,10 +56,16 @@ spec:
               name: sigsci.my-site-name-here
               key: secretaccesskey
         - name: SIGSCI_REVPROXY_LISTENER
-          value: "app1:{listener=http://0.0.0.0:8080,upstreams=https://http-me.edgecompute.app:443/,pass-host-header=false}"
+          value: "app1:{listener=http://0.0.0.0:8080,upstreams=http://localhost:80/,pass-host-header=false}"
         volumeMounts:
         - name: sigsci-tmp
           mountPath: /sigsci/tmp
+      - name: nginx
+        # Using a minimal, lightweight NGINX image.
+        image: nginx:alpine
+        # ports:
+        # Exposes port 80 from the container.
+        # - containerPort: 80
       volumes:
       - name: sigsci-tmp
         emptyDir: {}
@@ -59,11 +73,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: httpbin
+  name: fastly-ngwaf
   namespace: ingress-apisix # <-- Required
 spec:
   selector:
-    app: httpbin-deployment
+    app: ngwaf-apache-apisix-deployment
   ports:
     - name: http
       port: 80
