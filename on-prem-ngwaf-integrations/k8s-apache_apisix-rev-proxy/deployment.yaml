@@ -1,0 +1,86 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: getting-started-ip
+  namespace: ingress-apisix # <-- Required
+spec:
+  ingressClassName: apisix
+  rules:
+    - http:
+        paths:
+          - backend:
+              service:
+                name: fastly-ngwaf
+                port:
+                  number: 80
+            path: /
+            pathType: Prefix
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ngwaf-apache-apisix-deployment
+  namespace: ingress-apisix # <-- Required
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ngwaf-apache-apisix-deployment
+  template:
+    metadata:
+      labels:
+        app: ngwaf-apache-apisix-deployment
+    spec:
+      containers:
+      - name: sigsci-agent
+        image: signalsciences/sigsci-agent:latest
+        env:
+        - name: SIGSCI_DEBUG_LOG_BLOCKED_REQUESTS
+          value: "1"
+        - name: SIGSCI_DEBUG_LOG_WEB_INPUTS
+          value: "1"
+        - name: SIGSCI_DEBUG_LOG_CONFIG_UPDATES
+          value: "1"
+        - name: SIGSCI_DEBUG_LOG_CONFIG_UPLOADS
+          value: "1"
+        - name: SIGSCI_DEBUG_LOG_WEB_OUTPUTS
+          value: "1"             
+        - name: SIGSCI_ACCESSKEYID
+          valueFrom:
+            secretKeyRef:
+              name: sigsci.my-site-name-here
+              key: accesskeyid
+        - name: SIGSCI_SECRETACCESSKEY
+          valueFrom:
+            secretKeyRef:
+              name: sigsci.my-site-name-here
+              key: secretaccesskey
+        - name: SIGSCI_REVPROXY_LISTENER
+          value: "app1:{listener=http://0.0.0.0:8080,upstreams=http://localhost:80/,pass-host-header=false}"
+        volumeMounts:
+        - name: sigsci-tmp
+          mountPath: /sigsci/tmp
+      - name: nginx
+        # Using a minimal, lightweight NGINX image.
+        image: nginx:alpine
+        # ports:
+        # Exposes port 80 from the container.
+        # - containerPort: 80
+      volumes:
+      - name: sigsci-tmp
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fastly-ngwaf
+  namespace: ingress-apisix # <-- Required
+spec:
+  selector:
+    app: ngwaf-apache-apisix-deployment
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 8080
+  type: ClusterIP
