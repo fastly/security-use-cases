@@ -2,7 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: getting-started-ip
-  namespace: ingress-apisix # <-- Required
+  namespace: ingress-apisix
 spec:
   ingressClassName: apisix
   rules:
@@ -20,7 +20,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ngwaf-apache-apisix-deployment
-  namespace: ingress-apisix # <-- Required
+  namespace: ingress-apisix
 spec:
   replicas: 1
   selector:
@@ -61,11 +61,7 @@ spec:
         - name: sigsci-tmp
           mountPath: /sigsci/tmp
       - name: nginx
-        # Using a minimal, lightweight NGINX image.
         image: nginx:alpine
-        # ports:
-        # Exposes port 80 from the container.
-        # - containerPort: 80
       volumes:
       - name: sigsci-tmp
         emptyDir: {}
@@ -74,7 +70,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: fastly-ngwaf
-  namespace: ingress-apisix # <-- Required
+  namespace: ingress-apisix
 spec:
   selector:
     app: ngwaf-apache-apisix-deployment
