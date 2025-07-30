@@ -56,12 +56,15 @@ spec:
               name: sigsci.my-site-name-here
               key: secretaccesskey
         - name: SIGSCI_REVPROXY_LISTENER
-          value: "app1:{listener=http://0.0.0.0:8080,upstreams=http://localhost:80/,pass-host-header=false}"
+          # It uses the FQDN of the nginx service: <service-name>.<namespace>.svc.cluster.local
+          value: "app1:{listener=http://0.0.0.0:8080,upstreams=http://nginx-service.ingress-apisix.svc.cluster.local:8181/,pass-host-header=false}"
         volumeMounts:
         - name: sigsci-tmp
           mountPath: /sigsci/tmp
       - name: nginx
         image: nginx:alpine
+        ports:
+        - containerPort: 80        
       volumes:
       - name: sigsci-tmp
         emptyDir: {}
@@ -79,4 +82,20 @@ spec:
       port: 80
       protocol: TCP
       targetPort: 8080
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+  namespace: ingress-apisix
+spec:
+  selector:
+    app: ngwaf-apache-apisix-deployment
+  ports:
+    - name: http
+      port: 8181
+      protocol: TCP
+      targetPort: 80
   type: ClusterIP

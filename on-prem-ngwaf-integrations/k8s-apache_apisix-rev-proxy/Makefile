@@ -25,6 +25,7 @@ drerunexec:
 # Environment variables $NGWAFACCESSKEYID and $NGWAFACCESSKEYSECRET must already be set before running `make build`
 build:
 	-@ kubectl create secret generic sigsci.my-site-name-here --from-literal=accesskeyid=${NGWAFACCESSKEYID} --from-literal=secretaccesskey=${NGWAFACCESSKEYSECRET}  
+# 	-@ kubectl create secret generic sigsci.my-site-name-here --from-literal=accesskeyid=${NGWAFACCESSKEYID} --from-literal=secretaccesskey=${NGWAFACCESSKEYSECRET}  -n sigsci-ns
 	kubectl apply -f deployment.yaml
 	-@ sleep 2
 # -@ make demo
@@ -61,9 +62,9 @@ get:
 rebuild:
 	make clean; make build
 
-make exec:
-	kubectl get pods | grep $(KUBEDEPLOYMENT) | awk '{print $$1}'
-	kubectl get pods | grep $(KUBEDEPLOYMENT) | awk '{print $$1}' | xargs -I {} echo kubectl exec --stdin --tty {} -c sigsci-agent -- /bin/sh
+# make exec:
+# 	kubectl get pods | grep $(KUBEDEPLOYMENT) | awk '{print $$1}'
+# 	kubectl get pods | grep $(KUBEDEPLOYMENT) | awk '{print $$1}' | xargs -I {} echo kubectl exec --stdin --tty {} -c sigsci-agent -- /bin/sh
 
 # kubectl get pods | grep $(KUBEDEPLOYMENT) | awk '{print $$1}' | xargs -I {} echo kubectl exec --stdin -c nginx --tty {} -- /bin/sh
 
