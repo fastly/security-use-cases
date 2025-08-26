@@ -13,7 +13,7 @@ variable "USER_VCL_SERVICE_DOMAIN_NAME" {
 
 variable "USER_VCL_SERVICE_BACKEND_HOSTNAME" {
   type          = string
-  description   = "hostname used for backend."
+  description   = "Hostname used for backend."
   default       = "http.edgecompute.app"
 }
 
