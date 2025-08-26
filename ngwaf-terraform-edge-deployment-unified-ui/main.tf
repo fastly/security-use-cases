@@ -9,7 +9,7 @@ resource "fastly_service_vcl" "frontend_vcl_service" {
   product_enablement {
     ngwaf {
       traffic_ramp = 100
-      workspace_id = fastly_ngwaf_workspace.my_ngwaf_workspace.ID
+      workspace_id = fastly_ngwaf_workspace.my_ngwaf_workspace.id
       enabled = true
     }
   }
