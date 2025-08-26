@@ -1,7 +1,7 @@
 # Fastly Edge VCL configuration
 variable "FASTLY_API_KEY" {
     type        = string
-    description = "This is API key for the Fastly configuration."
+    description = "This is the API key for the Fastly configuration."
 }
 
 #### VCL Service variables - Start
