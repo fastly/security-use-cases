@@ -1,0 +1,30 @@
+# This file describes a Fastly Compute package. To learn more visit:
+# https://www.fastly.com/documentation/reference/compute/fastly-toml
+
+authors = [""]
+cloned_from = "https://github.com/fastly/compute-starter-kit-rust-empty"
+description = ""
+language = "rust"
+manifest_version = 3
+name = "ngwaf-compute-interface"
+service_id = ""
+
+[setup]
+  [setup.config_stores]
+    [setup.config_stores.ngwaf]
+      description = "Next-gen WAF configuration"
+      [setup.config_stores.ngwaf.items]
+        [setup.config_stores.ngwaf.items.corp]
+        [setup.config_stores.ngwaf.items.workspace]
+
+[local_server]
+  [local_server.config_stores]
+    [local_server.config_stores.ngwaf]
+      format = "inline-toml"
+    [local_server.config_stores.ngwaf.contents]
+      "corp" = "my_corp"
+      "workspace" = "my_workspace"
+
+[scripts]
+  build = "cargo build --profile release"
+
