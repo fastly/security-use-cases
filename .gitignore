@@ -44,3 +44,4 @@ gold-standard-starter/terraform.auto.tfvars
 ngwaf-terraform-edge-deployment-unified-ui/terraform.auto.tfvars
 /ngwaf-compute-interface/.cargo
 ngwaf-compute-interface/Cargo.lock
+.DS_Store
