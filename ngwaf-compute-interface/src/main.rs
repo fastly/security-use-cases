@@ -1,10 +1,6 @@
 // Interface for Fastly Compute@Edge with NGWAF
 
 use fastly::{Error, Request, Response};
-use std::string::ToString;
-
-#[cfg(test)]
-use fastly::http::StatusCode;
 
 mod waf_inspection;
 
