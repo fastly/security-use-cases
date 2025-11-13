@@ -1,0 +1,105 @@
+---
+# Deployment for minimal NGINX backend server in a separate pod
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-backend-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-backend
+  template:
+    metadata:
+      labels:
+        app: nginx-backend
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:alpine
+          ports:
+            - containerPort: 80
+---
+# Service for NGINX backend
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-backend-service
+spec:
+  selector:
+    app: nginx-backend
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 80
+  type: ClusterIP
+---
+# Deployment for sigsci-agent in reverse proxy mode in a separate pod
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sigsci-revproxy-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sigsci-revproxy
+  template:
+    metadata:
+      labels:
+        app: sigsci-revproxy
+    spec:
+      containers:
+        - name: sigsci-agent
+          image: signalsciences/sigsci-agent:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SIGSCI_DEBUG_LOG_BLOCKED_REQUESTS
+              value: "1"
+            - name: SIGSCI_DEBUG_LOG_WEB_INPUTS
+              value: "1"
+            - name: SIGSCI_DEBUG_LOG_CONFIG_UPDATES
+              value: "1"
+            - name: SIGSCI_DEBUG_LOG_CONFIG_UPLOADS
+              value: "1"
+            - name: SIGSCI_DEBUG_LOG_WEB_OUTPUTS
+              value: "1"
+            - name: SIGSCI_ACCESSKEYID
+              valueFrom:
+                secretKeyRef:
+                  name: sigsci.my-site-name-here
+                  key: accesskeyid
+            - name: SIGSCI_SECRETACCESSKEY
+              valueFrom:
+                secretKeyRef:
+                  name: sigsci.my-site-name-here
+                  key: secretaccesskey
+            - name: SIGSCI_REVPROXY_LISTENER
+              # Proxy to NGINX backend service in separate pod
+              value: >-
+                app1:{listener=http://0.0.0.0:8080,
+                upstreams=http://nginx-backend-service.default.svc.cluster.local:80/,
+                pass-host-header=false}
+          volumeMounts:
+            - name: sigsci-tmp
+              mountPath: /sigsci/tmp
+      volumes:
+        - name: sigsci-tmp
+          emptyDir: {}
+---
+# Service for sigsci-agent reverse proxy (frontend)
+apiVersion: v1
+kind: Service
+metadata:
+  name: sigsci-revproxy-service
+spec:
+  selector:
+    app: sigsci-revproxy
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 8080
+  type: NodePort

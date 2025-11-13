@@ -1,105 +1,101 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: getting-started-ip
+  namespace: ingress-apisix
+spec:
+  ingressClassName: apisix
+  rules:
+    - http:
+        paths:
+          - backend:
+              service:
+                name: fastly-ngwaf
+                port:
+                  number: 80
+            path: /
+            pathType: Prefix
 ---
-# Deployment for minimal NGINX backend server in a separate pod
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nginx-backend-deployment
+  name: ngwaf-apache-apisix-deployment
+  namespace: ingress-apisix
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: nginx-backend
+      app: ngwaf-apache-apisix-deployment
   template:
     metadata:
       labels:
-        app: nginx-backend
+        app: ngwaf-apache-apisix-deployment
     spec:
       containers:
-        - name: nginx
-          image: nginx:alpine
-          ports:
-            - containerPort: 80
----
-# Service for NGINX backend
-apiVersion: v1
-kind: Service
-metadata:
-  name: nginx-backend-service
-spec:
-  selector:
-    app: nginx-backend
-  ports:
-    - name: http
-      port: 80
-      protocol: TCP
-      targetPort: 80
-  type: ClusterIP
----
-# Deployment for sigsci-agent in reverse proxy mode in a separate pod
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: sigsci-revproxy-deployment
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: sigsci-revproxy
-  template:
-    metadata:
-      labels:
-        app: sigsci-revproxy
-    spec:
-      containers:
-        - name: sigsci-agent
-          image: signalsciences/sigsci-agent:latest
-          ports:
-            - containerPort: 8080
-          env:
-            - name: SIGSCI_DEBUG_LOG_BLOCKED_REQUESTS
-              value: "1"
-            - name: SIGSCI_DEBUG_LOG_WEB_INPUTS
-              value: "1"
-            - name: SIGSCI_DEBUG_LOG_CONFIG_UPDATES
-              value: "1"
-            - name: SIGSCI_DEBUG_LOG_CONFIG_UPLOADS
-              value: "1"
-            - name: SIGSCI_DEBUG_LOG_WEB_OUTPUTS
-              value: "1"
-            - name: SIGSCI_ACCESSKEYID
-              valueFrom:
-                secretKeyRef:
-                  name: sigsci.my-site-name-here
-                  key: accesskeyid
-            - name: SIGSCI_SECRETACCESSKEY
-              valueFrom:
-                secretKeyRef:
-                  name: sigsci.my-site-name-here
-                  key: secretaccesskey
-            - name: SIGSCI_REVPROXY_LISTENER
-              # Proxy to NGINX backend service in separate pod
-              value: >-
-                app1:{listener=http://0.0.0.0:8080,
-                upstreams=http://nginx-backend-service.default.svc.cluster.local:80/,
-                pass-host-header=false}
-          volumeMounts:
-            - name: sigsci-tmp
-              mountPath: /sigsci/tmp
-      volumes:
+      - name: sigsci-agent
+        image: signalsciences/sigsci-agent:latest
+        env:
+        - name: SIGSCI_DEBUG_LOG_BLOCKED_REQUESTS
+          value: "1"
+        - name: SIGSCI_DEBUG_LOG_WEB_INPUTS
+          value: "1"
+        - name: SIGSCI_DEBUG_LOG_CONFIG_UPDATES
+          value: "1"
+        - name: SIGSCI_DEBUG_LOG_CONFIG_UPLOADS
+          value: "1"
+        - name: SIGSCI_DEBUG_LOG_WEB_OUTPUTS
+          value: "1"             
+        - name: SIGSCI_ACCESSKEYID
+          valueFrom:
+            secretKeyRef:
+              name: sigsci.my-site-name-here
+              key: accesskeyid
+        - name: SIGSCI_SECRETACCESSKEY
+          valueFrom:
+            secretKeyRef:
+              name: sigsci.my-site-name-here
+              key: secretaccesskey
+        - name: SIGSCI_REVPROXY_LISTENER
+          # It uses the FQDN of the nginx service: <service-name>.<namespace>.svc.cluster.local
+          value: "app1:{listener=http://0.0.0.0:8080,upstreams=http://nginx-service.ingress-apisix.svc.cluster.local:8181/,pass-host-header=false}"
+        volumeMounts:
         - name: sigsci-tmp
-          emptyDir: {}
+          mountPath: /sigsci/tmp
+      - name: nginx
+        image: nginx:alpine
+        ports:
+        - containerPort: 80        
+      volumes:
+      - name: sigsci-tmp
+        emptyDir: {}
 ---
-# Service for sigsci-agent reverse proxy (frontend)
 apiVersion: v1
 kind: Service
 metadata:
-  name: sigsci-revproxy-service
+  name: fastly-ngwaf
+  namespace: ingress-apisix
 spec:
   selector:
-    app: sigsci-revproxy
+    app: ngwaf-apache-apisix-deployment
   ports:
     - name: http
       port: 80
       protocol: TCP
       targetPort: 8080
-  type: NodePort
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+  namespace: ingress-apisix
+spec:
+  selector:
+    app: ngwaf-apache-apisix-deployment
+  ports:
+    - name: http
+      port: 8181
+      protocol: TCP
+      targetPort: 80
+  type: ClusterIP
