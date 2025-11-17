@@ -1,4 +1,6 @@
 name: Envoy NGWAF Deployment
+permissions:
+  contents: read
 
 on:
   workflow_dispatch:
