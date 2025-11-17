@@ -7,6 +7,8 @@ jobs:
   test:
     runs-on: ubuntu-latest
     environment: staging
+    permissions:
+      contents: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
