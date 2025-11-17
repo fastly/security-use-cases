@@ -1,4 +1,6 @@
 name: Rate Limiting Demo
+permissions:
+  contents: read
 
 on:
   workflow_dispatch:
