@@ -1,5 +1,7 @@
 name: Build ngwaf-compute-integration
 on: push
+permissions:
+  contents: read
 
 jobs:
   build-ngwaf-compute-integration:

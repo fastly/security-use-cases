@@ -1,4 +1,6 @@
 name: k8s module-agent NGWAF Deployment
+permissions:
+  contents: read
 
 on:
   workflow_dispatch:
