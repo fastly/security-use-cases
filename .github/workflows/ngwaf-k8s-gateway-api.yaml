@@ -1,0 +1,96 @@
+name: k8s Gateway API NGWAF Deployment
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    environment: staging
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up kind
+        uses: engineerd/setup-kind@v0.6.2
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Install Gateway API CRDs
+        run: |
+          kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.0.0/standard-install.yaml
+          sleep 5
+      
+      - name: Install Envoy Gateway
+        run: |
+          kubectl apply -f https://github.com/envoyproxy/gateway/releases/download/v1.0.0/install.yaml
+          kubectl wait --timeout=5m -n envoy-gateway-system deployment/envoy-gateway --for=condition=Available
+
+      - name: Create Kubernetes Secret
+        run: |
+          kubectl create secret generic sigsci.my-site-name-here \
+            --from-literal=accesskeyid=${{ secrets.NGWAF_STAGING_ACCESSKEYID }} \
+            --from-literal=secretaccesskey=${{ secrets.NGWAF_STAGING_SECRETACCESSKEY }}
+      
+      - name: Deploy resources from file
+        run: kubectl apply -f on-prem-ngwaf-integrations/k8s-gateway-api/deployment.yaml
+
+      - name: Wait for NGINX backend rollout
+        run: kubectl rollout status deployment/nginx-backend-deployment --timeout=30s
+
+      - name: Wait for sigsci-agent rollout
+        run: kubectl rollout status deployment/sigsci-revproxy-deployment --timeout=30s
+      
+      - name: Wait for Gateway to be ready
+        run: |
+          kubectl wait --timeout=60s --for=condition=Programmed gateway/sigsci-gateway
+          sleep 5
+
+      - name: Check Gateway and HTTPRoute status
+        run: |
+          kubectl get gateway sigsci-gateway -o yaml
+          kubectl get httproute nginx-route -o yaml
+      
+      - name: Port-forward Gateway
+        run: |
+          nohup kubectl port-forward gateway/sigsci-gateway 10000:8000 &
+          sleep 5
+
+      - name: Test with curl
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:10000/)
+          if [ "$response" -ne 200 ]; then
+            echo "Received HTTP status code $response"
+            exit 1
+          fi
+        
+      - name: Check health
+        if: always()
+        run: |
+          echo "=== Pods ==="
+          kubectl get pods
+          echo "=== Services ==="
+          kubectl get services
+          echo "=== Gateways ==="
+          kubectl get gateway
+          echo "=== HTTPRoutes ==="
+          kubectl get httproute
+          echo "=== Pod Descriptions ==="
+          kubectl describe pods
+          echo "=== Gateway Description ==="
+          kubectl describe gateway sigsci-gateway
+          echo "=== HTTPRoute Description ==="
+          kubectl describe httproute nginx-route
+          echo "=== NGINX Backend Logs ==="
+          kubectl logs -l app=nginx-backend --all-containers=true || true
+          echo "=== sigsci-agent Logs ==="
+          kubectl logs -l app=sigsci-revproxy --all-containers=true || true
+      
+      - name: Wait for logs to upload
+        if: always()
+        run: |
+          # Wait for agent to upload logs
+          sleep 15

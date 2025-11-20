@@ -1,6 +1,7 @@
 [![Build ngwaf-compute-integration](https://github.com/fastly/security-use-cases/actions/workflows/build-ngwaf-compute-integration.yaml/badge.svg)](https://github.com/fastly/security-use-cases/actions/workflows/build-ngwaf-compute-integration.yaml)
 [![Envoy NGWAF Deployment Test](https://github.com/fastly/security-use-cases/actions/workflows/ngwaf-envoy.yaml/badge.svg)](https://github.com/fastly/security-use-cases/actions/workflows/ngwaf-envoy.yaml)
 [![k8s module-agent NGWAF Deployment](https://github.com/fastly/security-use-cases/actions/workflows/ngwaf-k8s-module-agent.yaml/badge.svg)](https://github.com/fastly/security-use-cases/actions/workflows/ngwaf-k8s-module-agent.yaml)
+[![k8s Gateway API NGWAF Deployment](https://github.com/fastly/security-use-cases/actions/workflows/ngwaf-k8s-gateway-api.yaml/badge.svg)](https://github.com/fastly/security-use-cases/actions/workflows/ngwaf-k8s-gateway-api.yaml)
 
 # Fastly Next-Gen WAF (NGWAF) Edge Deployment Quick Start
 This repository allows you to quickly deploy a the NextGen WAF Edge integrations.
