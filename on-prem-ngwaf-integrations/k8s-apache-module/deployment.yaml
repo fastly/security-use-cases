@@ -1,0 +1,116 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: k8s-apache-module-agent-config
+data:
+  # Apache configuration for NGWAF module
+  # The sigsci_agent_host directive points to the Unix socket for agent communication
+  sigsci.conf: |
+    <IfModule sigsci_module>
+      SigSciAgentHost unix:/sigsci/tmp/sigsci.sock
+    </IfModule>
+  # Default site configuration
+  000-default.conf: |
+    <VirtualHost *:80>
+        ServerAdmin webmaster@localhost
+        DocumentRoot /var/www/html
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+    </VirtualHost>
+  # Simple index page
+  index.html: |
+    Hello World from Apache with Fastly Next-Gen WAF
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-apache-module-agent-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k8s-apache-module-agent
+  template:
+    metadata:
+      labels:
+        app: k8s-apache-module-agent
+    spec:
+      containers:
+      - name: apache
+        image: my-local-images/apache-module:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        # Mount the NGWAF module configuration
+        - name: apache-config-volume
+          mountPath: /etc/apache2/conf-enabled/sigsci.conf
+          subPath: sigsci.conf
+        # Mount the default site configuration
+        - name: apache-config-volume
+          mountPath: /etc/apache2/sites-available/000-default.conf
+          subPath: 000-default.conf
+        # Mount the index page
+        - name: apache-config-volume
+          mountPath: /var/www/html/index.html
+          subPath: index.html
+        # Shared volume for NGWAF agent socket
+        - name: sigsci-tmp
+          mountPath: /sigsci/tmp
+      - name: sigsci-agent
+        # IMPORTANT: Use a specific version of the agent for production stability
+        image: signalsciences/sigsci-agent:latest # Replace with a specific agent version
+        imagePullPolicy: IfNotPresent # Recommended for versioned tags
+        env:
+          - name: SIGSCI_ACCESSKEYID
+            valueFrom:
+              secretKeyRef:
+                name: sigsci.my-site-name-here # References the Secret defined above
+                key: accesskeyid
+          - name: SIGSCI_SECRETACCESSKEY
+            valueFrom:
+              secretKeyRef:
+                name: sigsci.my-site-name-here # References the Secret defined above
+                key: secretaccesskey
+          - name: SIGSCI_DEBUG_LOG_BLOCKED_REQUESTS
+            value: "1"
+          - name: SIGSCI_DEBUG_LOG_WEB_INPUTS
+            value: "1"
+          - name: SIGSCI_DEBUG_LOG_CONFIG_UPDATES
+            value: "1"
+          - name: SIGSCI_DEBUG_LOG_CONFIG_UPLOADS
+            value: "1"
+          - name: SIGSCI_DEBUG_LOG_WEB_OUTPUTS
+            value: "1"
+        volumeMounts:
+        - name: sigsci-tmp
+          mountPath: /sigsci/tmp
+      volumes:
+      # This volume makes the ConfigMap data available to the containers
+      - name: apache-config-volume
+        configMap:
+          name: k8s-apache-module-agent-config
+      # https://www.fastly.com/documentation/guides/next-gen-waf/setup-and-configuration/kubernetes/kubernetes-agent-module/#agent-temporary-volume
+      - name: sigsci-tmp
+        emptyDir: {}
+---
+# This Service exposes the Apache deployment to external traffic.
+apiVersion: v1
+kind: Service
+metadata:
+  # The name of the service.
+  name: k8s-apache-module-agent-service
+spec:
+  # Type "NodePort" exposes the service on a static port on each node's IP.
+  type: NodePort
+  selector:
+    # This selector must match the labels of the pods you want to target.
+    # In this case, it matches the pods from our deployment.
+    app: k8s-apache-module-agent
+  ports:
+    # This section defines the port mapping.
+    - protocol: TCP
+      # The port that the service will be exposed on internally in the cluster.
+      port: 80
+      # The port on the container that traffic will be forwarded to.
+      targetPort: 80
