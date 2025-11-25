@@ -28,7 +28,7 @@ COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Entrypoint will run the NGWAF agent and start Apache
-ENTRYPOINT "/usr/local/bin/entrypoint.sh"
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 # ENTRYPOINT "/bin/bash"
 
 # steps for demo when entrypoint is "/bin/bash"
