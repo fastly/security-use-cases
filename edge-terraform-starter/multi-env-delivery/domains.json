@@ -1,0 +1,13 @@
+{
+    "domains": {
+      "domain1": {
+        "frontend_domain": "cora-frontend1.global.ssl.fastly.net",
+        "backend_hostname": "http-me.edgecompute.app"
+      },
+      "domain2": {
+        "frontend_domain": "graham-frontend2.global.ssl.fastly.net",
+        "backend_hostname": "http-me.edgecompute.app"
+      }
+    }
+  }
+  
