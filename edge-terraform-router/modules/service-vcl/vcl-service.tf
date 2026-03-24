@@ -1,5 +1,5 @@
-resource "fastly_service_vcl" "demo" {
-  name = "demofastly"
+resource "fastly_service_vcl" "edge-terraform-router-demo" {
+  name = "edge-terraform-router-demo"
 
   # Iterates over the array to create multiple domain blocks
   dynamic "domain" {
@@ -37,7 +37,7 @@ resource "fastly_service_vcl" "demo" {
       name      = "condition-${replace(condition.value.domain_name, ".", "-")}"
       priority  = 10
       # Evaluates the incoming request host against the domain variable
-      statement = "req.http.host == \"${condition.value.domain_name}\""
+      statement = "std.tolower(req.http.host) == \"${condition.value.domain_name}\""
       type      = "REQUEST"
     }
   }
