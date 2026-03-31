@@ -6,3 +6,13 @@ variable "fastly_routes" {
   }))
   default = []
 }
+
+variable "add_header_based_on_path" {
+  description = "A list of objects representing path-based header additions. If the request matches the path, the specified header is added."
+  type = list(object({
+    path         = string
+    header_name  = string
+    header_value = string
+  }))
+  default = []
+}
