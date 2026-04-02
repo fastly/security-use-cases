@@ -1,0 +1,13 @@
+{
+  "name": "ngwaf-compute-interface-javascript",
+  "version": "0.1.0",
+  "description": "JavaScript implementation of the Fastly Compute NGWAF interface",
+  "type": "module",
+  "scripts": {
+    "build": "js-compute-runtime src/index.js bin/main.wasm",
+    "deploy": "npm run build && fastly compute deploy"
+  },
+  "devDependencies": {
+    "@fastly/js-compute": "3.40.1"
+  }
+}
