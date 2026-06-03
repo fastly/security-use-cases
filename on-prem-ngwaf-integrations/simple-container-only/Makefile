@@ -4,6 +4,7 @@ OPENAPISPECFILEPPETSTORE?="https://petstore3.swagger.io/api/v3/openapi.json"
 OPENAPISPECFILE?="http://host.docker.internal:8080/api/apiInventory/1/reconstructed_swagger.json"
 # OPENAPISPECFILE?="http://host.docker.internal:8080/api/apiInventory/1/provided_swagger.json"
 # OPENAPISPECFILE?="https://http-me.edgecompute.app/static-assets/openapi-spec.json"
+# websocat "ws://127.0.0.1:9999/api/websocket?roomId=brooksroom" ;  {"type":"QUESTION_POST_TO_ROOM","userId":"brooksroom","roomId":"asdfasdff","questionId":"c19a9ffc2580a074","questionText":"../../../etc/passwd"}
 
 pull:
 	docker pull signalsciences/sigsci-agent
