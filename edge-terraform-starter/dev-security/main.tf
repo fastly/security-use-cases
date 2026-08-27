@@ -12,73 +12,69 @@ provider "sigsci" {
 
 module "edge_security" {
   source                           = "../modules/edge-security"
-  NGWAF_EMAIL                      = var.NGWAF_EMAIL
-  NGWAF_TOKEN                      = var.NGWAF_TOKEN
-  NGWAF_CORP                       = var.NGWAF_CORP
-  NGWAF_SITE                       = var.NGWAF_SITE
 }
 
 #### Rate Limiting Enumeration Attempts - Start
-resource "sigsci_site_signal_tag" "bad-response-signal" {
-  # site_short_name = var.NGWAF_SITE
-  site_short_name = module.edge_security.sigsci_site.ngwaf_workspace_site.short_name
-  name            = "bad-response"
-  description     = "Identification of attacks from malicious IPs"
-}
+# resource "sigsci_site_signal_tag" "bad-response-signal" {
+#   # site_short_name = var.NGWAF_SITE
+#   site_short_name = module.edge_security.sigsci_site.ngwaf_workspace_site.short_name
+#   name            = "bad-response"
+#   description     = "Identification of attacks from malicious IPs"
+# }
 
-resource "sigsci_site_rule" "enumeration-attack-rule" {
-  site_short_name = module.edge_security.sigsci_site.ngwaf_workspace_site.short_name
-  type            = "rateLimit"
-  group_operator  = "any"
-  enabled         = true
-  reason          = "Blocking IPs that have too many bad responses. Likely an enumeration attack."
-  expiration      = ""
+# resource "sigsci_site_rule" "enumeration-attack-rule" {
+#   site_short_name = module.edge_security.sigsci_site.ngwaf_workspace_site.short_name
+#   type            = "rateLimit"
+#   group_operator  = "any"
+#   enabled         = true
+#   reason          = "Blocking IPs that have too many bad responses. Likely an enumeration attack."
+#   expiration      = ""
 
-  conditions {
-    type     = "single"
-    field    = "responseCode"
-    operator = "like"
-    value    = "4[0-9][0-9]"
-  }
-  conditions {
-    type     = "single"
-    field    = "responseCode"
-    operator = "like"
-    value    = "5[0-9][0-9]"
-  }
-  # actions {
-  #   type          = "blockSignal"
-  #   signal        = "ALL-REQUESTS"
-  #   response_code = 406
-  # }
+#   conditions {
+#     type     = "single"
+#     field    = "responseCode"
+#     operator = "like"
+#     value    = "4[0-9][0-9]"
+#   }
+#   conditions {
+#     type     = "single"
+#     field    = "responseCode"
+#     operator = "like"
+#     value    = "5[0-9][0-9]"
+#   }
+#   # actions {
+#   #   type          = "blockSignal"
+#   #   signal        = "ALL-REQUESTS"
+#   #   response_code = 406
+#   # }
 
-  actions {
-    type   = "logRequest"
-    signal = sigsci_site_signal_tag.bad-response-signal.id
-  }
+#   actions {
+#     type   = "logRequest"
+#     signal = sigsci_site_signal_tag.bad-response-signal.id
+#   }
 
-  rate_limit = {
-    threshold = 10,
-    interval  = 1,
-    duration  = 600,
-    # clientIdentifiers = "ip" Defaults to IP
-  }
-  signal = sigsci_site_signal_tag.bad-response-signal.id
+#   rate_limit = {
+#     threshold = 10,
+#     interval  = 1,
+#     duration  = 600,
+#     # clientIdentifiers = "ip" Defaults to IP
+#   }
+#   signal = sigsci_site_signal_tag.bad-response-signal.id
 
-  depends_on = [
-    sigsci_site_signal_tag.bad-response-signal,
-  ]
-}
+#   depends_on = [
+#     sigsci_site_signal_tag.bad-response-signal,
+#   ]
+# }
 
 #### Rate Limiting Enumeration Attempts - End
 
 
-output "live_waf_love_output" {
-  value = <<tfmultiline
+# output "live_waf_love_output" {
+#   value = <<tfmultiline
 
-  #### Click the URL to go to the Fastly NGWAF service ####
-  https://dashboard.signalsciences.net/corps/${var.NGWAF_CORP}/sites/${var.NGWAF_SITE}
+#   #### Click the URL to go to the Fastly NGWAF service ####
+#   https://dashboard.signalsciences.net/corps/${var.NGWAF_CORP}/sites/${var.NGWAF_SITE}
 
-  tfmultiline
+#   tfmultiline
   
-}
+# }
