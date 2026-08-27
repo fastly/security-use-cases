@@ -16,6 +16,11 @@ variable "SERVICE_VCL_BACKEND_HOSTNAME" {
   default       = "http-me.edgecompute.app"
 }
 
+variable "NGWAF_WORKSPACE_ID" {
+  type        = string
+  description = "ID of the NGWAF workspace used by the service."
+}
+
 #### VCL Service variables - End
 
 

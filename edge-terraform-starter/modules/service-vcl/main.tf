@@ -7,6 +7,29 @@ resource "fastly_service_vcl" "frontend_vcl_service" {
     name    = var.SERVICE_VCL_FRONTEND_DOMAIN_NAME
     comment = "Frontend VCL Service - edge deploy"
   }
+
+  product_enablement {
+    api_discovery         = true
+    brotli_compression    = false
+    domain_inspector      = true
+    image_optimizer       = false
+    log_explorer_insights = true
+    origin_inspector      = true
+    websockets            = false
+    bot_management {
+      contentguard = "on"
+      enabled      = true
+    }
+    ddos_protection {
+      enabled = true
+      mode    = "log"
+    }
+    ngwaf {
+      enabled      = true
+      traffic_ramp = 100
+      workspace_id = var.NGWAF_WORKSPACE_ID
+    }
+  }
   backend {
     address           = var.SERVICE_VCL_BACKEND_HOSTNAME
     name              = "vcl_service_origin"
