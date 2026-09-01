@@ -42,5 +42,33 @@ resource "fastly_service_vcl" "edge-terraform-router-demo" {
     }
   }
 
+  # Iterates over the array to create path-based request conditions
+  dynamic "condition" {
+    for_each = var.add_header_based_on_path
+    content {
+      # Creates a unique condition name based on the path (e.g., "path-condition-anything-foo")
+      name      = "path-condition-${replace(trimprefix(condition.value.path, "/"), "/", "-")}"
+      priority  = 10
+      # Evaluates the incoming request path against the path variable
+      statement = "req.url.path == \"${condition.value.path}\""
+      type      = "REQUEST"
+    }
+  }
+
+  # Iterates over the array to add request headers based on path conditions
+  dynamic "header" {
+    for_each = var.add_header_based_on_path
+    content {
+      # Creates a unique header action name based on the header name and path
+      name              = "header-${header.value.header_name}-${replace(trimprefix(header.value.path, "/"), "/", "-")}"
+      action            = "set"
+      type              = "request"
+      destination       = "http.${header.value.header_name}"
+      source            = "\"${header.value.header_value}\""
+      # Links this header action to the corresponding path condition above
+      request_condition = "path-condition-${replace(trimprefix(header.value.path, "/"), "/", "-")}"
+    }
+  }
+
   force_destroy = true
 }
