@@ -1,151 +1,142 @@
 #### Add rules from https://www.fastly.com/blog/stronger-security-with-a-unified-cdn-and-waf
 
 # Using JA3 signatures and ASNs
-resource "sigsci_corp_list" "malicious-ja3s-list" {
+resource "fastly_ngwaf_account_list" "malicious-ja3s-list" {
   name = "malicious-ja3s-list"
   type = "string"
   entries = [
     "entries_go_here",
   ]
 }
-resource "sigsci_corp_signal_tag" "malicious-ja3-signal" {
-  short_name  = "malicious-ja3"
+resource "fastly_ngwaf_account_signal" "malicious-ja3-signal" {
+  name        = "malicious-ja3"
   description = "corp level malicious ja3"
+  applies_to  = ["*"]
 }
 
-resource "sigsci_corp_rule" "malicious-ja3-rule" {
-  site_short_names = []
-  type             = "request"
-  corp_scope       = "global"
-  group_operator   = "all"
-  enabled          = true
-  reason           = "malicious-ja3-rule"
-  expiration       = ""
-  conditions {
-    type           = "multival"
-    field          = "requestHeader"
+resource "fastly_ngwaf_account_rule" "malicious-ja3-rule" {
+  applies_to      = ["*"]
+  type            = "request"
+  description     = "malicious-ja3-rule"
+  enabled         = true
+  group_operator  = "all"
+  request_logging = "sampled"
+
+  multival_condition {
+    field          = "request_header"
     group_operator = "all"
     operator       = "exists"
-    conditions {
-      type     = "single"
+    condition {
       field    = "name"
       operator = "equals"
       value    = "client-ja3"
     }
 
-    conditions {
-      type     = "single"
-      field    = "valueString"
-      operator = "inList"
-      value    = sigsci_corp_list.malicious-ja3s-list.id
+    condition {
+      field    = "value_string"
+      operator = "in_list"
+      value    = "corp.${fastly_ngwaf_account_list.malicious-ja3s-list.name}"
     }
   }
-  actions {
-    type   = "addSignal"
-    signal = sigsci_corp_signal_tag.malicious-ja3-signal.id
+  action {
+    type   = "add_signal"
+    signal = "corp.${fastly_ngwaf_account_signal.malicious-ja3-signal.name}"
   }
 }
 
 # Utilizing the ASN header
-resource "sigsci_corp_list" "bad-reputation-asn-list" {
+resource "fastly_ngwaf_account_list" "bad-reputation-asn-list" {
   name = "bad-reputation-asn-list"
   type = "string"
   entries = [
     "entries_go_here",
   ]
 }
-resource "sigsci_corp_signal_tag" "bad-reputation-asn-signal" {
-  short_name  = "bad-reputation-asn"
+resource "fastly_ngwaf_account_signal" "bad-reputation-asn-signal" {
+  name        = "bad-reputation-asn"
   description = "corp level bad reputation asn"
+  applies_to  = ["*"]
 }
 
-resource "sigsci_corp_rule" "bad-reputation-asn-rule" {
-  site_short_names = []
-  type             = "request"
-  corp_scope       = "global"
-  group_operator   = "all"
-  enabled          = true
-  reason           = "bad-reputation-asn"
-  expiration       = ""
-  conditions {
-    type           = "multival"
-    field          = "requestHeader"
+resource "fastly_ngwaf_account_rule" "bad-reputation-asn-rule" {
+  applies_to      = ["*"]
+  type            = "request"
+  description     = "bad-reputation-asn"
+  enabled         = true
+  group_operator  = "all"
+  request_logging = "sampled"
+
+  multival_condition {
+    field          = "request_header"
     group_operator = "all"
     operator       = "exists"
-    conditions {
-      type     = "single"
+    condition {
       field    = "name"
       operator = "equals"
       value    = "asn"
     }
-    conditions {
-      type     = "single"
-      field    = "valueString"
-      operator = "inList"
-      value    = sigsci_corp_list.bad-reputation-asn-list.id
+    condition {
+      field    = "value_string"
+      operator = "in_list"
+      value    = "corp.${fastly_ngwaf_account_list.bad-reputation-asn-list.name}"
     }
   }
-  actions {
-    type   = "addSignal"
-    signal = sigsci_corp_signal_tag.bad-reputation-asn-signal.id
+  action {
+    type   = "add_signal"
+    signal = "corp.${fastly_ngwaf_account_signal.bad-reputation-asn-signal.name}"
   }
 }
 
 # Taking Advantage of the Proxy Headers
-resource "sigsci_corp_signal_tag" "suspicious-hosting-signal" {
-  short_name  = "suspicious-hosting"
+resource "fastly_ngwaf_account_signal" "suspicious-hosting-signal" {
+  name        = "suspicious-hosting"
   description = "suspicious hosting provider"
+  applies_to  = ["*"]
 }
 
-resource "sigsci_corp_rule" "suspicious-hosting-rule" {
-  site_short_names = []
-  type             = "request"
-  corp_scope       = "global"
-  group_operator   = "all"
-  enabled          = true
-  reason           = "suspicious-hosting"
-  expiration       = ""
-  conditions {
-    type           = "multival"
-    field          = "requestHeader"
+resource "fastly_ngwaf_account_rule" "suspicious-hosting-rule" {
+  applies_to      = ["*"]
+  type            = "request"
+  description     = "suspicious-hosting"
+  enabled         = true
+  group_operator  = "all"
+  request_logging = "sampled"
+
+  multival_condition {
+    field          = "request_header"
     group_operator = "all"
     operator       = "exists"
-    conditions {
-      type     = "single"
+    condition {
       field    = "name"
       operator = "equals"
       value    = "proxy-type"
     }
-    conditions {
-      type     = "single"
-      field    = "valueString"
+    condition {
+      field    = "value_string"
       operator = "equals"
       value    = "hosting"
     }
   }
-  conditions {
-    type           = "multival"
-    field          = "requestHeader"
+  multival_condition {
+    field          = "request_header"
     group_operator = "all"
     operator       = "exists"
-    conditions {
-      type     = "single"
+    condition {
       field    = "name"
       operator = "equals"
       value    = "proxy-desc"
     }
-    conditions {
-      type     = "single"
-      field    = "valueString"
-      operator = "doesNotEqual"
+    condition {
+      field    = "value_string"
+      operator = "does_not_equal"
       value    = "cloud"
     }
   }
-  actions {
-    type   = "addSignal"
-    signal = sigsci_corp_signal_tag.suspicious-hosting-signal.id
+  action {
+    type   = "add_signal"
+    signal = "corp.${fastly_ngwaf_account_signal.suspicious-hosting-signal.name}"
   }
 }
 
-# Optimize NGWAF enforcement with the Edge Cloud Network 
+# Optimize NGWAF enforcement with the Edge Cloud Network
 # Rate limiting rule
