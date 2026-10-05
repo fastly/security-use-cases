@@ -1,0 +1,5 @@
+{
+  "domains": [
+    { "fqdn": "beta-dev-tf-demo.global.ssl.fastly.net", "comment": "primary" }
+  ]
+}
