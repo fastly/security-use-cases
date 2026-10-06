@@ -62,11 +62,24 @@ service:
 ```json
 {
   "domains": [
-    { "fqdn": "dev-tf-demo.global.ssl.fastly.net", "comment": "primary" },
-    { "fqdn": "dev-tf-demo-2.global.ssl.fastly.net", "comment": "secondary" }
+    { "fqdn": "dev-tf-demo.freetls.fastly.net", "comment": "primary" },
+    { "fqdn": "dev-tf-demo-2.freetls.fastly.net", "comment": "secondary" }
   ]
 }
 ```
+
+~> **Important:** `fastly_domain` validates `fqdn` against the live Fastly API
+and rejects Fastly's own auto-assigned, per-service shared domain suffixes -
+`global.ssl.fastly.net`, `edgecompute.app`, and `us.preview.fastly-edge.com`
+all fail with `400 - Bad Request: Invalid value for fqdn`, since those
+hostnames are platform-managed and can't be independently claimed as an owned
+domain. `freetls.fastly.net` is different: it's a zone customers are meant to
+pick their own subdomain under (per [Fastly's routing
+docs](https://www.fastly.com/documentation/guides/concepts/routing-traffic-to-fastly/#cdn-services)),
+getting a working hostname with a Fastly-provided shared TLS certificate and
+no owned domain or custom cert required - which is why the placeholders here
+use it. A real owned domain works too; just point its DNS at the service once
+`fastly_domain` creates it.
 
 ## Pre-requisites
 
