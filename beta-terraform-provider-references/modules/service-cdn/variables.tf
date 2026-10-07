@@ -6,7 +6,7 @@ variable "SERVICE_NAME" {
 
 variable "BACKEND_ADDRESS" {
   type        = string
-  description = "Hostname or IP address of the origin backend."
+  description = "Hostname of the origin backend. This value is used for TLS/SNI and Host header semantics, so it must be a DNS name rather than an IP address."
   default     = "http-me.edgecompute.app"
 }
 #### Service - End
