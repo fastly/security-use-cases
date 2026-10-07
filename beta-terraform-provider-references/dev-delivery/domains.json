@@ -1,0 +1,5 @@
+{
+  "domains": [
+    { "fqdn": "dev-tf-demo.freetls.fastly.net", "comment": "primary" }
+  ]
+}
